@@ -1,0 +1,55 @@
+在使用`asp:TextBox`控件並希望不使用jQuery實現一個可搜索的下拉選單時，您仍然可以使用ASP.NET AJAX的擴展和純JavaScript或ASP.NET的`UpdatePanel`來實現類似的功能。這裡，我將提供一個使用`UpdatePanel`和`asp:TextBox`以及純JavaScript來實現的基本範例。
+
+### 使用ASP.NET AJAX的UpdatePanel
+
+`UpdatePanel`控件可以使您在不完全重新加載頁面的情況下，對頁面的特定部分進行異步更新。這意味著您可以在用戶輸入時動態更新客戶名稱列表，而不會影響頁面的其他部分。
+
+### 步驟1：添加UpdatePanel和TextBox
+
+在您的ASPX頁面上，使用`UpdatePanel`和`Trigger`來包裹`TextBox`控件和用於顯示結果的控件（如`Label`或`ListBox`）。
+
+```aspx
+<%@ Page Language="VB" AutoEventWireup="true" CodeFile="Default.aspx.vb" Inherits="_Default" %>
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>UpdatePanel示例</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
+    <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+        <ContentTemplate>
+            <asp:TextBox ID="txtCustomerName" runat="server" AutoPostBack="true" OnTextChanged="txtCustomerName_TextChanged"></asp:TextBox>
+            <asp:ListBox ID="lstCustomerNames" runat="server"></asp:ListBox>
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="txtCustomerName" EventName="TextChanged" />
+        </Triggers>
+    </asp:UpdatePanel>
+    </form>
+</body>
+</html>
+```
+
+### 步驟2：處理TextBox的TextChanged事件
+
+在您的ASP.NET後端代碼中，添加`TextChanged`事件處理器以響應用戶輸入。該處理器將基於用戶輸入從數據庫或其他數據源檢索匹配的客戶名稱，並更新列表框。
+
+```vb
+Protected Sub txtCustomerName_TextChanged(sender As Object, e As EventArgs) Handles txtCustomerName.TextChanged
+    Dim input As String = txtCustomerName.Text.Trim()
+    ' 這裡添加從數據庫或其他數據源檢索匹配項的代碼
+    ' 假設GetMatchingCustomerNames是從數據庫檢索匹配名稱的函數
+    Dim matchingNames As List(Of String) = GetMatchingCustomerNames(input)
+
+    ' 清除現有項並添加新匹配項到列表框
+    lstCustomerNames.Items.Clear()
+    For Each name As String In matchingNames
+        lstCustomerNames.Items.Add(name)
+    Next
+End Sub
+```
+
+這個示例演示了如何在ASP.NET應用程序中使用`UpdatePanel`和`asp:TextBox`實現動態搜尋和自動完成功能，同時避免了頁面的全面刷新，從而提升了用戶體驗。请根据实际情况调整`GetMatchingCustomerNames`方法，以实现从数据库或其他数据源检索匹配的客户名称。
