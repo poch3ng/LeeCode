@@ -118,4 +118,109 @@ End Namespace
    </div>
    ```
 
-請注意，此示例簡化了許多實際開發中必要的步驟，如處理跨域請求、安全性、數據模型定義、錯誤處理等。此外，前端示例未展示如何實現購物車邏
+請注意，此示例簡化了許多實際開發中必要的步驟，如處理跨域請求、安全性、數據模型定義、錯誤處理等。此外，前端示例未展示如何實現購物車邏辑，仅展示了如何从后端API获取产品列表并为每个产品提供了一个简单的“下单”按钮。接下来，我们将简要介绍如何实现购物车逻辑。
+
+### 扩展购物车功能
+
+为了完成购物车功能，我们需要在Angular前端进行一些额外的实现。这包括管理用户加入购物车的产品和提交整个购物车的订单。
+
+#### 1. 管理购物车状态
+
+我们可以创建一个简单的服务来管理购物车的状态，包括添加产品、移除产品和提交订单。
+
+```typescript
+// cart.service.ts
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CartService {
+  items: string[] = [];
+
+  constructor() { }
+
+  addToCart(product: string) {
+    this.items.push(product);
+  }
+
+  removeFromCart(product: string) {
+    const index = this.items.indexOf(product);
+    if (index > -1) {
+      this.items.splice(index, 1);
+    }
+  }
+
+  getItems(): string[] {
+    return this.items;
+  }
+
+  clearCart() {
+    this.items = [];
+    return this.items;
+  }
+
+  // 使用 ProductService 中的方法提交订单
+}
+```
+
+#### 2. 更新购物车组件
+
+接下来，更新购物车组件，使其能显示当前购物车中的产品，并提供一个方法来提交整个购物车作为订单。
+
+```typescript
+// cart.component.ts
+import { Component, OnInit } from '@angular/core';
+import { CartService } from '../cart.service';
+import { ProductService } from '../product.service';
+
+@Component({
+  selector: 'app-cart',
+  templateUrl: './cart.component.html',
+  styleUrls: ['./cart.component.css']
+})
+export class CartComponent implements OnInit {
+  items: string[];
+
+  constructor(
+    private cartService: CartService,
+    private productService: ProductService) { }
+
+  ngOnInit() {
+    this.items = this.cartService.getItems();
+  }
+
+  onSubmit() {
+    // 假设我们简单地提交第一个产品作为示例
+    if(this.items.length > 0) {
+      this.productService.createOrder(this.items[0]).subscribe(
+        response => {
+          console.log('Order submitted:', response);
+          this.cartService.clearCart(); // 清空购物车
+          this.items = this.cartService.getItems(); // 更新视图
+        }
+      );
+    }
+  }
+}
+```
+
+#### 3. 更新购物车组件的HTML模板
+
+```html
+<!-- cart.component.html -->
+<h2>Your Cart</h2>
+<div *ngFor="let item of items">
+  <p>{{ item }}</p>
+</div>
+
+<button (click)="onSubmit()">Submit Order</button>
+```
+
+#### 总结
+
+以上步骤简要介绍了如何在Angular前端实现购物车的基本功能，包括添加产品到购物车、查看购物车中的产品和提交订单。在实际应用中，您可能还需要考虑产品的数量管理、不同用户的购物车隔离、订单确认界面、支付流程等更复杂的业务逻辑。
+
+同时，后端（VB.NET）部分需要支持这些功能的相应API，比如处理具体订单的提交、管理库存等。
+
+这只是一个入门级的示例，用于展示如何使用VB.NET和Angular构建一个简单的购物车系统。根据您的具体需求，这个系统可以进一步扩展和定制。
