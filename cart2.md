@@ -241,3 +241,40 @@ export class CartItem {
 ```
 
 这种设计方式使得管理和展示购物车内容变得非常直接和高效。例如，在展示购物车项或计算总价时，您可以轻松地访问每个 `CartItem` 中的 `Product` 信息。
+
+
+
+在Angular中，事件绑定的语法与您提到的 `ng-click` 略有不同。`ng-click` 是AngularJS（Angular的前身）中使用的语法。在Angular（2+版本）中，您应该使用圆括号 `()` 来绑定事件，比如使用 `(click)` 而不是 `ng-click`。
+
+如果您想要从购物车中移除一个项目，您的按钮应该像这样使用 `(click)` 事件绑定：
+
+```html
+<button (click)="removeFromCart(item)">Remove</button>
+```
+
+这假设您有一个名为 `removeFromCart` 的方法在您的组件类中，它接受一个参数，即要从购物车中移除的项目。
+
+这里是如何实现 `removeFromCart` 方法的一个基本示例：
+
+```typescript
+// 假设您的购物车服务有一个方法可以根据产品ID移除产品
+removeFromCart(item: CartItem) {
+  this.cartService.removeFromCart(item.product.id);
+  // 可能还需要更新购物车视图或做其他操作
+}
+```
+
+在 `CartService` 服务中，`removeFromCart` 方法可能会查找匹配的 `CartItem` 并将其移除：
+
+```typescript
+removeFromCart(productId: number) {
+  const index = this.items.findIndex(item => item.product.id === productId);
+  if (index > -1) {
+    this.items.splice(index, 1);
+  }
+}
+```
+
+确保您在组件中正确地导入了 `CartService` 并在构造函数中注入了它，以便您可以在 `removeFromCart` 方法中使用它。
+
+这样，每当用户点击 "Remove" 按钮时，就会调用 `removeFromCart` 方法，传入被点击的项目作为参数，然后该项目将从购物车中移除。
