@@ -115,3 +115,66 @@ Logger.Log("FATAL", "核心服务启动失败，应用将中止。")
 ```
 
 使用这些日志级别时，应该在`Logger`类中预设这些级别，并在记录日志时选择适当的级别。通过这种方式，您可以更容易地管理和过滤日志信息，确保关注到重要的事件，同时还能保持日志的清晰和有用。在实践中，可能还会根据实际需求调整或增加日志级别，但上述提供了一个基本的框架。
+
+
+是的，您可以在`Logger`类中直接定义这些日志级别，并在记录日志时使用这些预定义的级别。这种方式可以增加代码的清晰度和易用性，同时还能确保日志级别的一致性。以下是一个简化的示例，展示如何在`Logger`类中定义日志级别并使用它们：
+
+### 步骤1：定义日志级别
+
+首先，您可以在`Logger`类中定义一个枚举（Enum）来表示不同的日志级别：
+
+```vb
+Public Enum LogLevel
+    DEBUG
+    INFO
+    WARNING
+    ERROR
+    FATAL
+End Enum
+```
+
+### 步骤2：修改`Log`方法
+
+接着，修改`Logger`类中的`Log`方法，让它使用这个日志级别枚举：
+
+```vb
+Imports System.Data.SqlClient
+
+Public Class Logger
+    Private Shared ReadOnly connectionString As String = System.Configuration.ConfigurationManager.ConnectionStrings("YourConnectionString").ToString()
+
+    Public Shared Sub Log(level As LogLevel, message As String, Optional exception As String = "")
+        Dim logLevelName As String = level.ToString()
+        Dim query As String = "INSERT INTO ApplicationLogs (LogLevel, LogMessage, ExceptionMessage) VALUES (@LogLevel, @LogMessage, @ExceptionMessage)"
+        
+        Using conn As New SqlConnection(connectionString)
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@LogLevel", logLevelName)
+                cmd.Parameters.AddWithValue("@LogMessage", message)
+                If String.IsNullOrEmpty(exception) Then
+                    cmd.Parameters.AddWithValue("@ExceptionMessage", DBNull.Value)
+                Else
+                    cmd.Parameters.AddWithValue("@ExceptionMessage", exception)
+                End If
+                
+                conn.Open()
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+End Class
+```
+
+### 步骤3：使用`Logger`记录不同级别的日志
+
+最后，您可以在应用程序中根据需要记录不同级别的日志。例如：
+
+```vb
+Logger.Log(LogLevel.DEBUG, "这是一条DEBUG级别的日志信息。")
+Logger.Log(LogLevel.INFO, "用户张三登录成功。")
+Logger.Log(LogLevel.WARNING, "配置文件缺失，使用默认配置。")
+Logger.Log(LogLevel.ERROR, "连接数据库失败。", "详细的异常信息...")
+Logger.Log(LogLevel.FATAL, "系统关键服务启动失败，应用将中止。")
+```
+
+通过这种方式，您的`Logger`类更加易于使用和维护，同时还保持了代码的清晰和一致性。日志级别枚举也为日志记录提供了明确的语义上下文，使得日志信息更加易于理解和过滤。
