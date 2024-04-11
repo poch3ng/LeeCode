@@ -127,3 +127,69 @@ End Namespace
 ```
 
 请确保在`Web.config`中已正确配置您的数据库连接字符串，并替换`YourConnectionString`为实际的连接字符串键名。此外，根据您的数据库表结构和字段，可能需要调整SQL插入语句及其参数。
+
+
+如果您使用的是之前提供的`Logger`类示例，并想要在生产环境中调整不记录`DEBUG`级别的日志，您可以通过在代码中添加一些逻辑来实现这一点。下面是如何修改`Logger`类来根据环境或配置动态调整是否记录`DEBUG`级别日志的示例：
+
+### 步骤1：添加配置标志
+
+首先，在您的配置文件（`Web.config`或`App.config`）中添加一个标志来指示是否启用`DEBUG`日志记录。这允许您通过更改配置而不是代码来控制日志行为：
+
+```xml
+<appSettings>
+    <!-- 其他设置 -->
+    <add key="EnableDebugLogging" value="false" /> <!-- 生产环境设置为false，开发或测试环境设置为true -->
+</appSettings>
+```
+
+### 步骤2：修改`Logger`类
+
+接着，修改`Logger`类，让它根据配置来决定是否记录`DEBUG`级别的日志：
+
+```vb
+Imports System.Data.SqlClient
+Imports System.Configuration ' 确保引入了System.Configuration命名空间
+
+Public Class Logger
+    Public Enum LogLevel
+        DEBUG
+        INFO
+        WARNING
+        ERR
+        FATAL
+    End Enum
+
+    Private Shared ReadOnly connectionString As String = ConfigurationManager.ConnectionStrings("YourConnectionString").ToString()
+    ' 读取配置标志
+    Private Shared ReadOnly enableDebugLogging As Boolean = Boolean.Parse(ConfigurationManager.AppSettings("EnableDebugLogging"))
+
+    Public Shared Sub Log(level As LogLevel, message As String, Optional exception As String = "", Optional userInfo As String = "N/A", Optional environment As String = "Production")
+        ' 如果日志级别是DEBUG且配置中未启用DEBUG日志，则直接返回不记录
+        If level = LogLevel.DEBUG AndAlso Not enableDebugLogging Then
+            Return
+        End If
+
+        Dim logLevelName As String = level.ToString()
+        Dim query As String = "INSERT INTO ApplicationLogs (LogDate, LogLevel, LogMessage, ExceptionMessage, UserInfo, Environment) VALUES (GETDATE(), @LogLevel, @LogMessage, @ExceptionMessage, @UserInfo, @Environment)"
+
+        Using conn As New SqlConnection(connectionString)
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@LogLevel", logLevelName)
+                cmd.Parameters.AddWithValue("@LogMessage", message)
+                If String.IsNullOrEmpty(exception) Then
+                    cmd.Parameters.AddWithValue("@ExceptionMessage", DBNull.Value)
+                Else
+                    cmd.Parameters.AddWithValue("@ExceptionMessage", exception)
+                End If
+                cmd.Parameters.AddWithValue("@UserInfo", userInfo)
+                cmd.Parameters.AddWithValue("@Environment", environment)
+
+                conn.Open()
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+End Class
+```
+
+在这个修改过的`Logger`类中，我们在记录日志之前检查是否启用了`DEBUG`日志记录。这种方法允许您通过简单地更改配置文件来控制是否记录`DEBUG`级别的日志，而无需重新编译代码。这对于在不同环境（开发、测试、生产）之间切换日志记录策略非常有用。
