@@ -1,3 +1,47 @@
+要將 SQL 腳本中的表名稱作為變數使用，可以通過動態 SQL 命令來實現。下面是一個示例，展示如何將表名稱設為變數並執行相應的 SQL 命令：
+
+### 步驟 1: 定義變數
+首先，您需要定義包含表名的 SQL 變數。然後使用這些變數來構建動態 SQL 查詢。
+
+```sql
+DECLARE @SourceTable NVARCHAR(128) = 'OriginalTable';  -- 源表名
+DECLARE @BackupTable NVARCHAR(128) = 'BackupTable';  -- 備份表名
+```
+
+### 步驟 2: 使用動態 SQL 創建和更新表
+您將需要使用 `EXEC sp_executesql` 命令來執行包含變數的 SQL 腳本。
+
+```sql
+-- 創建新表的動態 SQL 腳本
+DECLARE @SQL NVARCHAR(MAX);
+
+-- 檢查新表是否存在，如果不存在則創建新表
+SET @SQL = N'IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = ''' + @BackupTable + ''')
+BEGIN
+    SELECT * INTO ' + @BackupTable + ' FROM ' + @SourceTable + ' WHERE 1 = 0; -- 創建結構
+END';
+EXEC sp_executesql @SQL;
+
+-- 將數據從源表複製到備份表
+SET @SQL = N'INSERT INTO ' + @BackupTable + ' SELECT * FROM ' + @SourceTable + ';';
+EXEC sp_executesql @SQL;
+```
+
+### 步驟 3: 驗證數據
+最後，您可以執行一個查詢來檢查新表中的數據：
+
+```sql
+SET @SQL = N'SELECT * FROM ' + @BackupTable + ';';
+EXEC sp_executesql @SQL;
+```
+
+### 注意事項：
+- 使用動態 SQL 時需小心，因為它容易出錯且可能導致 SQL 注入攻擊。確保控制變數的來源和內容。
+- 確保在生產環境中使用時具有適當的許可權和錯誤處理機制。
+- 確保傳入的表名稱是預期的並且安全的。
+
+通過這種方法，您可以將表名作為變數傳入 SQL 腳本，方便地對不同的表進行操作。
+
 如果您想要將 SQL Server Management Studio (SSMS) 中的一個表中的所有資料備份到一個新的表中，您可以使用 SQL 查詢來達到這個目的。這裡提供一個簡單的步驟來實現這個過程：
 
 ### 步驟 1: 開啟 SSMS 並連接到數據庫
