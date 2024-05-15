@@ -1,3 +1,97 @@
+要在ASP.NET MVC应用中显示用户上传的文件列表，我们可以在上传文件后将文件名存储在视图模型中，并在模态窗口中显示这些文件名。以下是逐步指导如何实现这一功能：
+
+### 1. 修改Model以存储文件名
+
+首先，我们需要在`FileUpload`模型中添加一个字符串列表来存储上传文件的名称。
+
+```vb
+Public Class FileUpload
+    Public Property Files As IEnumerable(Of HttpPostedFileBase)
+    Public Property UploadedFileNames As List(Of String) = New List(Of String)()
+End Class
+```
+
+### 2. 修改Controller以更新文件名列表
+
+在`FileUploadController`的上传方法中，我们需要更新模型，将上传的文件名添加到列表中。
+
+```vb
+Imports System.Web.Mvc
+
+Namespace Controllers
+    Public Class FileUploadController
+        Inherits Controller
+
+        ' GET: FileUpload
+        Function Index() As ActionResult
+            Return View(New FileUpload())
+        End Function
+
+        ' POST: FileUpload
+        <HttpPost>
+        Function Index(ByVal model As FileUpload) As ActionResult
+            If ModelState.IsValid AndAlso model.Files IsNot Nothing AndAlso model.Files.Any() Then
+                For Each file In model.Files
+                    If file IsNot Nothing AndAlso file.ContentLength > 0 Then
+                        Dim fileName As String = System.IO.Path.GetFileName(file.FileName)
+                        Dim uploadPath As String = Server.MapPath("~/App_Data/uploads")
+                        file.SaveAs(System.IO.Path.Combine(uploadPath, fileName))
+                        model.UploadedFileNames.Add(fileName)
+                    End If
+                Next
+                ViewBag.Message = "Files uploaded successfully."
+            End If
+
+            Return View(model)
+        End Function
+    End Class
+End Namespace
+```
+
+### 3. 修改视图以显示上传的文件名
+
+在模态窗口的视图中，我们需要添加一个部分来显示上传的文件名。
+
+```vbhtml
+<div class="modal-body">
+    @Html.Partial("UploadForm", Model)
+    
+    @If Model.UploadedFileNames.Any() Then
+        <div class="alert alert-info">
+            <strong>Uploaded Files:</strong>
+            <ul>
+                @For Each fileName In Model.UploadedFileNames
+                    @<li>@fileName</li>
+                Next
+            </ul>
+        </div>
+    End If
+</div>
+```
+
+### 4. 确保部分视图使用模型
+
+修改部分视图 `_UploadForm.vbhtml` 以确保它使用了从控制器传递的模型。
+
+```vbhtml
+@ModelType YourProjectName.Models.FileUpload
+
+@<form action="@Url.Action("Index", "FileUpload")" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <label>Choose files to upload:</label>
+        <input type="file" class="form-control" name="files" multiple />
+    </div>
+    <button type="submit" class="btn btn-success">Upload</button>
+</form>
+```
+
+### 5. 测试功能
+
+现在运行您的应用程序，尝试上传文件，并检查模态窗口中是否正确显示了文件名列表。
+
+这样，您就可以在模态窗口中实现一个文件上传功能，并显示已上传的文件名列表，以便用户能够看到他们已经上传了哪些文件。如果有任何问题或需要进一步的帮助，请随时询问！
+
 要在你的ASP.NET MVC應用中整合Bootstrap，你可以通過以下步驟來美化和增強你的檔案上傳表單的外觀和感覺。
 
 ### 1. 安裝Bootstrap
