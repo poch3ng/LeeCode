@@ -1,3 +1,75 @@
+要實作多檔案上傳功能，你需要對Model和View做一些調整，使其可以接受和處理多個檔案。下面是步驟的詳細說明：
+
+### 1. 修改Model
+在`FileUpload.vb`中，將`File`屬性從單一檔案改為檔案列表。
+
+```vb
+Public Class FileUpload
+    Public Property Files As IEnumerable(Of HttpPostedFileBase)
+End Class
+```
+
+### 2. 修改Controller
+更新`FileUploadController.vb`中的`Index`方法，讓它能處理多個檔案的上傳。
+
+```vb
+Imports System.Web.Mvc
+
+Namespace Controllers
+    Public Class FileUploadController
+        Inherits Controller
+
+        ' GET: FileUpload
+        Function Index() As ActionResult
+            Return View()
+        End Function
+
+        ' POST: FileUpload
+        <HttpPost>
+        Function Index(ByVal model As FileUpload) As ActionResult
+            If ModelState.IsValid AndAlso model.Files IsNot Nothing AndAlso model.Files.Any() Then
+                For Each file In model.Files
+                    If file IsNot Nothing AndAlso file.ContentLength > 0 Then
+                        Dim fileName As String = System.IO.Path.GetFileName(file.FileName)
+                        Dim uploadPath As String = Server.MapPath("~/App_Data/uploads")
+                        file.SaveAs(System.IO.Path.Combine(uploadPath, fileName))
+                    End If
+                Next
+                ViewBag.Message = "Files uploaded successfully."
+            End If
+
+            Return View(model)
+        End Function
+    End Class
+End Namespace
+```
+
+### 3. 修改View
+在`Index.vbhtml`中，更新表單以允許選擇多個檔案。
+
+```vbhtml
+@ModelType YourProjectName.Models.FileUpload
+
+@<form action="" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <label for="file">Choose files to upload:</label>
+    <input type="file" name="files" id="file" multiple="multiple" />
+    <input type="submit" value="Upload" />
+    @If ViewBag.Message IsNot Nothing Then
+        <p>@ViewBag.Message</p>
+    End If
+</form>
+```
+
+在`<input type="file"`標籤中，添加`multiple="multiple"`屬性，這樣使用者就可以選擇多個檔案來上傳。注意表單中`name`屬性的值是`files`，這需要與Model中定義的屬性相對應。
+
+### 4. 測試功能
+運行你的ASP.NET MVC應用程式，並導航到 `/FileUpload`。你應該可以選擇多個檔案進行上傳。上傳完成後，檢查`App_Data/uploads`資料夾以確認檔案是否正確上傳。
+
+這樣就完成了ASP.NET MVC應用中的多檔案上傳功能的實作。如果你有進一步的問題或需要更多的幫助，請隨時提問！
+
+
 要在ASP.NET MVC中使用VBHTML檔案和Controller來實作一個上傳檔案的功能，你可以依照以下步驟操作：
 
 ### 1. 建立一個新的ASP.NET MVC專案
