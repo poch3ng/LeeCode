@@ -1,3 +1,55 @@
+要在你的ASP.NET MVC應用中整合Bootstrap，你可以通過以下步驟來美化和增強你的檔案上傳表單的外觀和感覺。
+
+### 1. 安裝Bootstrap
+首先，你需要將Bootstrap添加到你的專案中。在Visual Studio中，你可以使用NuGet包管理器來安裝Bootstrap。
+
+- 打開你的專案，點擊「Tools」>「NuGet Package Manager」>「Manage NuGet Packages for Solution」。
+- 搜索「Bootstrap」，選擇相應的Bootstrap套件（如`bootstrap`）並安裝到你的專案中。
+
+### 2. 修改_Layout.vbhtml以引入Bootstrap
+在`Views/Shared`資料夾中找到`_Layout.vbhtml`檔案，並確保在`<head>`區塊中添加了Bootstrap的CSS引用，以及在`<body>`標籤末尾添加了JavaScript引用。
+
+```html
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+```
+
+### 3. 使用Bootstrap更新你的View
+更新`Views/FileUpload/Index.vbhtml`，使用Bootstrap的CSS類來美化表單。
+
+```vbhtml
+@ModelType YourProjectName.Models.FileUpload
+
+@<form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label for="file" class="col-md-2 control-label">Choose files to upload:</label>
+        <div class="col-md-10">
+            <input type="file" class="form-control" name="files" id="file" multiple="multiple" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Upload" class="btn btn-primary" />
+        </div>
+    </div>
+    @If ViewBag.Message IsNot Nothing Then
+        <div class="alert alert-success">
+            <p>@ViewBag.Message</p>
+        </div>
+    End If
+</form>
+```
+
+這裡我們使用了`form-horizontal`類來使表單水平對齊，並使用了`form-group`和`control-label`來結構化每個輸入元素。`btn btn-primary`使提交按鈕看起來更漂亮。
+
+### 4. 測試並調整
+現在運行你的ASP.NET MVC應用，並導航到`/FileUpload`。你應該會看到一個使用Bootstrap風格的表單。你可以根據需要進行進一步的美化和調整。
+
+以上步驟將引
+
 要實作多檔案上傳功能，你需要對Model和View做一些調整，使其可以接受和處理多個檔案。下面是步驟的詳細說明：
 
 ### 1. 修改Model
