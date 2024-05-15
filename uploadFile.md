@@ -1,3 +1,61 @@
+若您希望在用户上传文件之前能够预览文件名列表，并在用户确认后才真正上传文件，我们可以采用JavaScript来实现这个预览功能，并使用一个简单的表单来上传文件。以下是如何实现这一功能的步骤：
+
+### 1. 修改视图文件以添加预览功能
+
+您可以在`Index.vbhtml`视图文件中添加JavaScript代码来处理文件选择事件，捕捉选中的文件名，并在用户点击上传按钮之前显示这些文件名。
+
+```vbhtml
+@ModelType YourProjectName.Models.FileUpload
+
+@<form id="uploadForm" action="@Url.Action("Index", "FileUpload")" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <label for="files">Choose files to upload:</label>
+        <input type="file" class="form-control" name="files" id="files" multiple onchange="previewFiles()" />
+    </div>
+    <div id="fileList" class="form-group">
+        <!-- 预览文件名将在这里显示 -->
+    </div>
+    <button type="submit" class="btn btn-success" disabled="disabled" id="submitBtn">Upload</button>
+</form>
+
+<script>
+function previewFiles() {
+    var input = document.getElementById('files');
+    var output = document.getElementById('fileList');
+    var submitBtn = document.getElementById('submitBtn');
+
+    output.innerHTML = '';
+    if (input.files.length > 0) {
+        var ul = document.createElement('ul');
+        for (var i = 0; i < input.files.length; i++) {
+            var li = document.createElement('li');
+            li.textContent = input.files[i].name;
+            ul.appendChild(li);
+        }
+        output.appendChild(ul);
+        submitBtn.disabled = false; // Enable the submit button
+    } else {
+        submitBtn.disabled = true; // Disable the submit button if no files are selected
+    }
+}
+</script>
+```
+
+### 2. 修改Controller来处理文件上传
+
+确保`FileUploadController`的`Index`方法可以处理POST请求并保存上传的文件，如之前步骤所述。
+
+### 3. 测试功能
+
+启动您的应用程序，并尝试选择一些文件。文件名应该在您选择文件后立即显示在表单下方的列表中。您可以查看文件名并决定是否上传。
+
+### 4. 样式调整
+
+您可以使用Bootstrap或其他CSS框架来美化表单和文件列表的样式，确保它们符合您网站的整体风格。
+
+通过这种方式，用户可以在文件上传前预览即将上传的文件名，并在确认无误后通过点击“Upload”按钮上传文件。这样的功能可以提升用户体验，确保文件上传前的透明度和可控性。如果您有任何疑问或需要进一步的帮助，请随时询问！
+
 要在ASP.NET MVC应用中显示用户上传的文件列表，我们可以在上传文件后将文件名存储在视图模型中，并在模态窗口中显示这些文件名。以下是逐步指导如何实现这一功能：
 
 ### 1. 修改Model以存储文件名
