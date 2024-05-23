@@ -149,3 +149,62 @@ ORDER BY
 - 完成後，將報告部署到報告服務伺服器，以便其他用戶可以訪問。
 
 這些步驟將幫助你在SSRS中創建一個動態的、根據世代和月份分類的長條圖，有效地展示不同世代在不同月份的分布情況。
+
+要在SSRS中將長條圖的X軸設置為顯示全年每個月份（例如“Jan”, “Feb”, “Mar”等），並保證顯示所有12個月份，即使某些月份沒有數據，你可以按照以下步驟進行：
+
+### 1. 調整資料集查詢
+首先，確保你的查詢能夠輸出所有12個月份的數據。這可能需要對資料庫查詢進行調整，以確保即使某些月份沒有數據也能顯示出來。你可以利用一個包含所有月份的表與你的數據進行左連接。
+
+#### 示例SQL查詢
+這裡使用一個數字表來生成1到12的月份列表，並與你的數據表進行左連接：
+
+```sql
+WITH Months(MonthNumber) AS (
+    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
+    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL
+    SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL
+    SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+)
+SELECT 
+    m.MonthNumber,
+    DATENAME(MONTH, DATEFROMPARTS(2023, m.MonthNumber, 1)) AS MonthName,
+    ISNULL(g.Count, 0) AS Count,
+    g.GenerationType
+FROM 
+    Months m
+LEFT JOIN 
+    (SELECT 
+        GenerationType, 
+        MONTH(Date) AS MonthNumber, 
+        COUNT(*) AS Count
+     FROM 
+        YourTable
+     WHERE 
+        YEAR(Date) = 2023  -- 調整為需要的年份
+     GROUP BY 
+        GenerationType, MONTH(Date)
+    ) g ON m.MonthNumber = g.MonthNumber
+ORDER BY 
+    m.MonthNumber
+```
+
+### 2. 設置SSRS報告
+使用修改後的查詢來創建或更新SSRS報告中的數據集。
+
+### 3. 配置長條圖
+- 將長條圖的數據值設置為使用 `Count` 欄位。
+- 分類群組設置為使用 `MonthName` 欄位。
+- 系列群組設置為使用 `GenerationType` 欄位。
+
+### 4. 格式化X軸
+- 在長條圖的屬性中，找到X軸的配置部分。
+- 確保X軸的間隔設置為每個點顯示，以顯示所有月份。
+
+### 5. 測試和調整
+- 預覽報告以檢查長條圖是否正確顯示所有12個月份。
+- 調整圖表格式和顏色設置，以便清楚地表示不同的數據點和世代。
+
+### 6. 部署報告
+- 確認一切設置無誤後，部署報告到報告服務伺服器。
+
+這些步驟應該可以幫助你創建一個在SSRS中按月顯示數據的長條圖，且確保即使某些月份沒有數據也會顯示該月份的標籤。
