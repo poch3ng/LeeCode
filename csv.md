@@ -1,3 +1,110 @@
+如果您想要直接從客戶端的表格（HTML Table）中導出數據到Excel，有幾種方法可以在不依賴後端處理的情況下實現，完全在前端操作。這裡介紹兩種常見方法：
+
+### 方法 1: 使用JavaScript直接從HTML Table導出到Excel文件
+
+您可以使用純JavaScript來讀取HTML表格的數據並導出為CSV文件，然後用Excel打開。這是一個簡單的例子：
+
+```html
+<table id="dataTable">
+    <thead>
+        <tr>
+            <th>Column1</th>
+            <th>Column2</th>
+            <th>Column3</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Data1</td>
+            <td>Data2</td>
+            <td>Data3</td>
+        </tr>
+        <!-- 更多數據行 -->
+    </tbody>
+</table>
+
+<button onclick="exportTableToCSV('export.csv')">導出到CSV</button>
+
+<script>
+function exportTableToCSV(filename) {
+    var csv = [];
+    var rows = document.querySelectorAll("table tr");
+    
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        
+        for (var j = 0; j < cols.length; j++) 
+            row.push('"' + cols[j].innerText + '"');
+        
+        csv.push(row.join(","));
+    }
+
+    // 下載CSV文件
+    downloadCSV(csv.join("\n"), filename);
+}
+
+function downloadCSV(csv, filename) {
+    var csvFile;
+    var downloadLink;
+
+    // CSV文件
+    csvFile = new Blob([csv], {type: "text/csv"});
+
+    // 下載鏈接
+    downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+}
+</script>
+```
+
+這段代碼會將表格中的所有數據讀取出來，並將其轉換為CSV格式，然後創建一個可下載的鏈接讓用戶可以下載。
+
+### 方法 2: 使用 SheetJS 庫
+
+SheetJS是一個功能強大的庫，可以在前端處理各種電子表格數據，包括從HTML表格直接生成真正的Excel文件（XLSX格式）。這個方法需要引入SheetJS庫。
+
+```html
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<table id="dataTable">
+    <thead>
+        <tr>
+            <th>Column1</th>
+            <th>Column2</th>
+            <th>Column3</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Data1</td>
+            <td>Data2</td>
+            <td>Data3</td>
+        </tr>
+        <!-- 更多數據行 -->
+    </tbody>
+</table>
+
+<button onclick="exportTableToExcel('dataTable', 'data.xlsx')">導出到Excel</button>
+
+<script>
+function exportTableToExcel(tableID, filename) {
+    var table = document.getElementById(tableID);
+    var workbook = XLSX.utils.table_to_book(table, {sheet: "Sheet 1"});
+    XLSX.writeFile(workbook, filename);
+}
+</script>
+```
+
+這段代碼將HTML表格直接轉換成Excel文件並提供下載，不需要後端處理。
+
+### 總結
+
+這兩種方法都不需要後端支持，直接在用戶端處理表格數據的導出。選擇哪一種取決於您是否需要生成真正的Excel文件或只是CSV格式足夠。如果需要更多的格式支持或更複雜的表格處
+
 在ASP.NET MVC應用中，實現`GetLatestQueryData`方法涉及到如何保存和檢索最後一次用戶執行的查詢數據。考慮到這些數據應該是針對每個用戶獨立保存的，我們可以使用ASP.NET的Session來存儲這些數據。這樣，當用戶決定導出到CSV時，我們可以從Session中取得這些數據。
 
 ### 步驟 1: 保存查詢結果到Session
