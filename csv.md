@@ -1,3 +1,69 @@
+如果您遇到問題無法從第二頁或多頁的表格中導出數據，這通常是因為HTML表格的數據可能是動態生成的，或者分頁處理不在當前DOM中。要解決這個問題，您可以考慮以下幾個步驟，這將幫助您從多頁表格中導出數據到CSV文件：
+
+### 步驟 1: 確定表格數據是否動態加載
+
+首先，檢查表格的數據是否是由JavaScript動態生成的。如果是，那麼您可能需要在導出功能中處理每次分頁或更新。
+
+### 步驟 2: 修改JavaScript函數以處理多頁數據
+
+您需要修改`exportTableToCSV`函數，使其能夠讀取並導出所有分頁的數據。這可能涉及到以下改動：
+
+1. **自動觸發分頁**：如果您的表格有分頁控件，您可以通過JavaScript模擬用戶的分頁操作（比如點擊分頁按鈕），從而讀取每一頁的數據。
+
+2. **等待數據加載**：在讀取每一頁數據前，確保數據已經完全加載到DOM中。
+
+3. **疊加數據**：每讀取一頁，將該頁的數據添加到CSV數據中，而不是替換之前的數據。
+
+### 示例代碼：處理多頁數據
+
+這是一個基本的範例，展示如何模擬點擊分頁並導出所有分頁的數據：
+
+```javascript
+async function exportAllPagesToCSV(filename) {
+    var csv = [];
+    var totalPages = document.querySelector("#pageCount").innerText; // 假設總頁數在某個元素中
+
+    for (let page = 1; page <= totalPages; page++) {
+        // 模擬點擊分頁
+        document.querySelector(`#pageButton${page}`).click();
+        
+        // 等待數據加載
+        await new Promise(r => setTimeout(r, 1000)); // 等待1秒，讓數據加載
+        
+        // 導出當前頁的數據
+        var rows = document.querySelectorAll("table tr");
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+            for (var j = 0; j < cols.length; j++) 
+                row.push('"' + cols[j].innerText + '"');
+            
+            csv.push(row.join(","));
+        }
+    }
+
+    // 下載CSV文件
+    downloadCSV(csv.join("\n"), filename);
+}
+
+function downloadCSV(csv, filename) {
+    var csvFile;
+    var downloadLink;
+
+    csvFile = new Blob([csv], {type: "text/csv"});
+    downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+}
+```
+
+### 注意事項
+- 確保網頁允許通過模擬點擊來切換分頁。
+- 調整等待時間以確保數據完全加載，這個時間可能根據網絡速度和數據大小而有所不同。
+- 檢查是否有任何跨域或安全策略限制這種
+
 如果您遇到的问题与 jQuery 版本有关，确保您使用的代码和 jQuery 版本兼容是非常重要的。较老的 jQuery 版本可能不支持某些方法或者这些方法的行为与最新版有所不同。接下来我将为您提供一些适用于任何 jQuery 版本的基本步骤，以及如何处理可能的版本兼容问题。
 
 ### 确认 jQuery 版本
