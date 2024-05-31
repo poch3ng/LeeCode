@@ -1,3 +1,46 @@
+在ASP.NET MVC應用中，實現`GetLatestQueryData`方法涉及到如何保存和檢索最後一次用戶執行的查詢數據。考慮到這些數據應該是針對每個用戶獨立保存的，我們可以使用ASP.NET的Session來存儲這些數據。這樣，當用戶決定導出到CSV時，我們可以從Session中取得這些數據。
+
+### 步驟 1: 保存查詢結果到Session
+
+當用戶執行查詢並獲得結果時，您可以將這些結果保存到Session中。這可以在查詢的動作方法中實現：
+
+```csharp
+[HttpPost]
+public ActionResult SearchData(SearchModel model)
+{
+    var data = GetDataFromDatabase(model); // 根據查詢模型從數據庫中獲取數據
+    Session["LatestQueryResults"] = data;  // 將數據保存到Session中
+    return Json(data); // 將數據以JSON格式回傳給前端
+}
+```
+
+### 步驟 2: 從Session中獲取最後的查詢數據
+
+在`ExportToCsv`方法中，您可以從Session中獲取保存的數據：
+
+```csharp
+[HttpGet]
+public ActionResult ExportToCsv()
+{
+    var data = Session["LatestQueryResults"] as List<YourDataType>; // 從Session中獲取數據並轉型
+    if (data == null)
+    {
+        return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "No data available for export.");
+    }
+    
+    var output = ConvertToCsv(data);
+    return File(Encoding.UTF8.GetBytes(output), "text/csv", "DataExport.csv");
+}
+```
+
+### 注意事項
+
+- **數據類型轉換**：在從Session取得數據時，確保正確地轉型到您的數據類型。上面的例子中使用了`List<YourDataType>`作為示例，您需要將其替換成實際的數據類型。
+- **Session過期處理**：Session有過期時間，預設通常是20分鐘。如果Session過期，則存儲的數據會丟失，這種情況下如果用戶嘗試導出數據會得到一個錯誤或者無數據的提示。
+- **性能和資源考慮**：保存大量數據到Session可以消耗顯著的服務器資源，特別是在用戶量大時。確保您的服務器設定能夠處理這樣的負載，或考慮使用更有效的數據儲存和緩存策略。
+
+使用Session來保存查詢結果是一個簡單直接的方法，但要留意其對性能的影響及適當處理可能的Session過期問題。
+
 要實現一個查詢按鈕和一個匯出Excel的按鈕，我們可以分別建立查詢和匯出的功能。下面的步驟和代碼將幫助您設定這兩個功能：
 
 ### 步驟 1: 前端設計
