@@ -1,3 +1,47 @@
+如果您的URL地址藏在HTML表格的`<a>`標籤的`href`屬性中，您需要稍微修改JavaScript函數以從這些屬性中提取URL。這種情況常見於表格中的數據是以超連結形式存在的。以下是如何從`<a>`標籤中提取`href`並將其轉換為CSV文件中的Excel超連結的步驟。
+
+### 修改JavaScript函數
+
+這個修改過的函數將檢查每個單元格以確定是否包含`<a>`標籤，如果是，則提取其`href`屬性：
+
+```javascript
+function exportTableToCSV(filename) {
+    var csv = [];
+    var rows = document.querySelectorAll("table tr");
+    
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        
+        for (var j = 0; j < cols.length; j++) {
+            // 檢查單元格是否包含<a>標籤
+            var link = cols[j].querySelector("a");
+            if (link) {
+                var url = link.getAttribute("href");
+                var linkText = link.innerText;
+                // 將連結格式化為Excel的HYPERLINK函數
+                row.push('`=HYPERLINK("' + url + '", "' + linkText + '")`');
+            } else {
+                // 如果沒有<a>標籤，只添加文字
+                row.push('"' + cols[j].innerText + '"');
+            }
+        }
+        
+        csv.push(row.join(","));
+    }
+
+    // 下載CSV文件
+    downloadCSV(csv.join("\n"), filename);
+}
+
+function downloadCSV(csv, filename) {
+    var csvFile;
+    var downloadLink;
+
+    // 創建CSV文件
+    csvFile = new Blob([csv], {type: "text/csv"});
+
+    // 創建下
+
 如果您遇到問題無法從第二頁或多頁的表格中導出數據，這通常是因為HTML表格的數據可能是動態生成的，或者分頁處理不在當前DOM中。要解決這個問題，您可以考慮以下幾個步驟，這將幫助您從多頁表格中導出數據到CSV文件：
 
 ### 步驟 1: 確定表格數據是否動態加載
