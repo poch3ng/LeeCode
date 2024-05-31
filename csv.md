@@ -1,3 +1,76 @@
+若您在使用JavaScript直接導出HTML表格到Excel或CSV時遇到亂碼問題，這通常是因為編碼設置不正確所導致。這裡提供幾個解決方法，以確保生成的文件在Excel中可以正確顯示中文或其他非ASCII字符。
+
+### 方法 1: 為CSV添加UTF-8編碼的BOM
+
+當您導出CSV文件並在Excel中打開時，添加一個UTF-8的Byte Order Mark (BOM) 可以解決亂碼問題。以下是如何在JavaScript中實現：
+
+```javascript
+function downloadCSV(csv, filename) {
+    var csvFile;
+    var downloadLink;
+
+    // 添加UTF-8的BOM
+    var BOM = "\uFEFF";
+    csv = BOM + csv;
+
+    // CSV文件
+    csvFile = new Blob([csv], {type: "text/csv; charset=utf-8"});
+
+    // 下載鏈接
+    downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+}
+```
+
+### 方法 2: 使用SheetJS庫導出XLSX時處理編碼問題
+
+SheetJS自動處理了文件的編碼問題，應該不會產生亂碼。如果使用SheetJS仍然出現亂碼問題，請確保您的HTML頁面或數據源文件本身的編碼設置為UTF-8。此外，檢查您的HTML標籤是否有正確的編碼聲明：
+
+```html
+<meta charset="UTF-8">
+```
+
+如果使用SheetJS仍有問題，可以考慮額外設置Excel文件的編碼：
+
+```javascript
+function exportTableToExcel(tableID, filename) {
+    var table = document.getElementById(tableID);
+    var workbook = XLSX.utils.table_to_book(table, {
+        sheet: "Sheet 1",
+        type: 'binary'
+    });
+
+    var wbout = XLSX.write(workbook, {
+        bookType: 'xlsx',
+        type: 'binary',
+        bookSST: true,
+        cellStyles: true
+    });
+
+    function s2ab(s) {
+        var buf = new ArrayBuffer(s.length);
+        var view = new Uint8Array(buf);
+        for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+    }
+
+    saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), filename);
+}
+```
+
+### 方法 3: 確保網頁服務器返回正確的字符集
+
+如果您的數據是透過AJAX從服務器獲取的，確保服務器響應頭部中的`Content-Type`包含`charset=utf-8`。這有助於確保從服務器接收的數據已經是UTF-8編碼。
+
+### 總結
+
+以上方法應該能解決大部分由於編碼問題導致的Excel或CSV文件亂碼問題。根據您的具體情況選擇最適合的方法。添加BOM通常是解決CSV在Excel中亂碼的快速而有效的方法，而SheetJS是一個功能強大的工具，對於複雜的表格導出需求來說更為適合。
+
 如果您想要直接從客戶端的表格（HTML Table）中導出數據到Excel，有幾種方法可以在不依賴後端處理的情況下實現，完全在前端操作。這裡介紹兩種常見方法：
 
 ### 方法 1: 使用JavaScript直接從HTML Table導出到Excel文件
