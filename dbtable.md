@@ -1,3 +1,44 @@
+若您需要在 SQL Server 中更改特定條件下的欄位值，例如在某個表格中將 `CtrlPtyId` 等於 'CP008' 的行中的 `CtrlPtyValue` 欄位的值更改為 "string"，可以使用以下 SQL 指令來達成：
+
+### 修改特定欄位值的 SQL 指令
+
+1. **確認資料**：
+   首先，檢查要修改的數據，以確保只影響預期的行。
+   ```sql
+   SELECT CtrlPtyId, CtrlPtyValue FROM your_table WHERE CtrlPtyId = 'CP008';
+   ```
+
+2. **更新數據**：
+   如果確認無誤，則使用 `UPDATE` 語句來更改欄位值。
+   ```sql
+   UPDATE your_table
+   SET CtrlPtyValue = 'string'
+   WHERE CtrlPtyId = 'CP008';
+   ```
+
+3. **驗證更新**：
+   更新後，再次查詢數據以確認更改已正確實施。
+   ```sql
+   SELECT CtrlPtyId, CtrlPtyValue FROM your_table WHERE CtrlPtyId = 'CP008';
+   ```
+
+### 注意事項
+
+- **操作前備份**：在進行任何修改前，建議備份相關數據或整個表格，以防需要回滾。
+- **測試環境**：首先在測試環境中進行修改，確認操作無誤後才應用於生產環境。
+- **事務處理**：在執行更新操作時，考慮使用事務管理來保證操作的原子性，例如：
+  ```sql
+  BEGIN TRANSACTION;
+  UPDATE your_table
+  SET CtrlPtyValue = 'string'
+  WHERE CtrlPtyId = 'CP008';
+  -- 檢查更新後的結果
+  SELECT CtrlPtyId, CtrlPtyValue FROM your_table WHERE CtrlPtyId = 'CP008';
+  COMMIT;  -- 確認無誤後提交事務
+  ```
+
+使用這種方法可以確保數據的一致性和安全性，在進行修改前進行充分的測試和確認是非常重要的。如需進一步的幫助或有其他問題，請隨時提問。
+
 # 修改欄位型別
 
 如果您在使用 SQL Server Management Studio (SSMS) 並想要將一個欄位的類型從 `integer` 修改為 `nvarchar`，以下是您需要遵循的步驟：
