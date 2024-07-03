@@ -1,3 +1,52 @@
+在使用 ASP.NET Web Forms 中，您可以採用類似的策略來防範開放式重定向（Open Redirect）的風險。以下是如何在 VB.NET 中安全地實現重定向的幾個步驟：
+
+### 1. 驗證重定向 URL 是否安全
+使用 `Uri.IsWellFormedUriString` 和自定義的邏輯來驗證 URL 是否是內部的，從而防止開放式重定向攻擊：
+
+```vb
+Protected Sub Page_Load(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
+    Dim returnUrl As String = Request.QueryString("returnUrl")
+    If Not String.IsNullOrEmpty(returnUrl) AndAlso IsLocalUrl(returnUrl) Then
+        Response.Redirect(returnUrl)
+    Else
+        Response.Redirect("Default.aspx")
+    End If
+End Sub
+
+Private Function IsLocalUrl(ByVal url As String) As Boolean
+    Return Uri.IsWellFormedUriString(url, UriKind.Relative)
+End Function
+```
+
+### 2. 使用預定義的路徑重定向
+避免使用用戶提供的數據來決定重定向目的地。儘可能重定向到預先定義的、可信的內部頁面：
+
+```vb
+Protected Sub RedirectToHome()
+    Response.Redirect("HomePage.aspx")
+End Sub
+```
+
+### 3. 謹慎使用查詢參數
+當您必須使用查詢參數來重定向用戶時，確保進行徹底的驗證來確保其安全性，避免重定向到外部網站：
+
+```vb
+Protected Sub Login()
+    ' 登入邏輯...
+    Dim returnUrl As String = Request.QueryString("returnUrl")
+    If Not String.IsNullOrEmpty(returnUrl) AndAlso IsLocalUrl(returnUrl) Then
+        Response.Redirect(returnUrl)
+    Else
+        Response.Redirect("Default.aspx")
+    End If
+End Sub
+```
+
+### 4. 教育和培訓
+確保開發團隊瞭解開放式重定向的風險以及如何安全地執行重定向，這對防範潛在的安全威脅至關重要。
+
+通過實施這些策略，您可以有效提升 ASP.NET Web Forms 應用程序的安全性，並防止開放式重定向導致的潛在安全風險。
+
 如果 `BO` 和 `Date` 的值在您的應用程式中是來自使用者輸入的變數，那麼進行嚴格的驗證和過濾變得尤為重要，以防止潛在的安全問題，如開放重定向攻擊或其他類型的注入攻擊。以下是處理和驗證來自使用者輸入的變數的一些步驟和代碼示例：
 
 ### 步驟
