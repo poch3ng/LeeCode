@@ -1,3 +1,60 @@
+当你在异步操作中调用 `ThrowIfCancellationRequested` 并且程序立即中止，这表明 `CancellationToken` 已经被触发并取消了当前的操作。这是正常行为，因为 `ThrowIfCancellationRequested` 的设计就是在检测到取消请求时抛出 `OperationCanceledException` 异常，以终止操作并让调用方知道操作已被取消。
+
+### 解决方法
+为了避免在取消请求时不必要地中止整个程序，你可以使用异常处理来捕获 `OperationCanceledException`，并处理取消逻辑，而不是让程序中止。
+
+### 示例代码
+
+以下是如何在异步方法中处理取消操作的示例：
+
+```vb
+Protected Async Function BindDataAsync() As Task
+    Dim tokenSource As New CancellationTokenSource()
+    Dim token As CancellationToken = tokenSource.Token
+
+    Try
+        ' 模拟长时间运行的任务
+        Await Task.Run(Sub()
+                           For i As Integer = 1 To 10
+                               ' 检查是否有取消请求
+                               If token.IsCancellationRequested Then
+                                   ' 如果取消了，就抛出异常
+                                   token.ThrowIfCancellationRequested()
+                               End If
+
+                               ' 模拟一些工作
+                               Thread.Sleep(500)
+                           Next
+                       End Sub, token)
+
+        ' 如果没有被取消，继续执行数据绑定
+        DropDownList1.DataSource = GetData()
+        DropDownList1.DataBind()
+    Catch ex As OperationCanceledException
+        ' 捕获取消异常，避免程序中止
+        Console.WriteLine("操作已取消")
+    Catch ex As Exception
+        ' 捕获其他异常
+        Console.WriteLine("发生错误: " & ex.Message)
+    Finally
+        tokenSource.Dispose()
+    End Try
+End Function
+```
+
+### 重要事项
+
+1. **`OperationCanceledException` 是正常的**：在调用 `ThrowIfCancellationRequested` 时抛出此异常是预期的行为，表示操作已成功响应取消请求。
+
+2. **在 `Catch` 块中处理取消**：你可以在 `Catch` 块中处理取消后的逻辑，比如记录日志、通知用户或执行清理操作。
+
+3. **防止程序中止**：通过捕获 `OperationCanceledException`，你可以避免因为取消请求导致程序中止。这样即使操作被取消，程序也能继续运行。
+
+4. **正确使用 `Finally` 块**：在 `Finally` 块中处理 `CancellationTokenSource` 的释放，确保资源被正确清理。
+
+通过这种方式，你可以优雅地处理异步操作中的取消请求，而不会影响程序的稳定性或导致意外中止。
+
+
 要在ASP.NET中取消前一個尚未完成的查詢，我們可以通過管理後台進程來實現。以下是一種可能的實現方式，使用 `CancellationToken` 來取消異步任務：
 
 ### 步驟 1: 定義 CancellationTokenSource
