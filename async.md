@@ -1,3 +1,60 @@
+在一個 `Async` 函式執行完後再進行下一個操作，你可以使用 `Await` 關鍵字來確保操作按順序進行。當你 `Await` 一個 `Task` 時，程式會暫停在該位置，直到這個 `Task` 完成，然後再繼續執行後面的程式碼。
+
+### 例子：
+
+假設你有兩個非同步函式 `FirstAsyncOperation` 和 `SecondAsyncOperation`，你希望在第一個函式完成後再執行第二個函式。這可以這樣實現：
+
+```vb
+Public Async Function PerformOperationsAsync() As Task
+    ' 首先執行第一個非同步操作
+    Await FirstAsyncOperation()
+    
+    ' 第一個操作完成後，繼續執行第二個非同步操作
+    Await SecondAsyncOperation()
+End Function
+
+Private Async Function FirstAsyncOperation() As Task
+    ' 模擬一些非同步操作（例如資料庫查詢或網路請求）
+    Await Task.Delay(1000)  ' 模擬等待 1 秒
+    Console.WriteLine("First operation completed.")
+End Function
+
+Private Async Function SecondAsyncOperation() As Task
+    ' 模擬另一個非同步操作
+    Await Task.Delay(1000)  ' 模擬等待 1 秒
+    Console.WriteLine("Second operation completed.")
+End Function
+```
+
+### 說明：
+
+1. **`PerformOperationsAsync` 函式**：
+   - 這是主要的控制流程，按順序執行 `FirstAsyncOperation` 和 `SecondAsyncOperation`。
+   - 使用 `Await` 確保在第一個操作完成後再執行第二個操作。
+
+2. **`FirstAsyncOperation` 和 `SecondAsyncOperation` 函式**：
+   - 這些函式模擬非同步操作，使用 `Task.Delay` 模擬等待時間。實際情況下，這些可以是資料庫查詢、文件讀取、API 請求等。
+
+### 確保順序執行
+
+- `Await` 關鍵字會等待該任務完成後再繼續執行接下來的代碼，因此可以保證操作的順序執行。
+- 如果你希望多個非同步操作同時進行，可以不使用 `Await`，而是將它們以並行方式啟動，然後再使用 `Await` 等待它們都完成。例如：
+
+   ```vb
+   Public Async Function PerformOperationsInParallelAsync() As Task
+       ' 同時開始兩個非同步操作
+       Dim task1 As Task = FirstAsyncOperation()
+       Dim task2 As Task = SecondAsyncOperation()
+       
+       ' 等待兩個操作都完成
+       Await Task.WhenAll(task1, task2)
+   End Function
+   ```
+
+### 結論
+
+使用 `Await` 可以輕鬆控制多個非同步操作的順序執行。只需確保在每個需要等待完成的操作前加上 `Await`，程式就會按照預期的順序依次執行這些操作。
+
 使用 `Task.Run` 將 `GridView` 的 `DataBind` 操作放到背景執行緒來執行的方式，可能會導致 UI 介面沒有更新。這是因為 UI 的更新必須在主執行緒（即 UI 執行緒）上進行，而 `Task.Run` 則是在背景執行緒中執行操作。
 
 ### 為什麼會這樣？
