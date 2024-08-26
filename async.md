@@ -1,3 +1,75 @@
+當你在非同步函式中更新介面過濾器後，再呼叫另一個更新查詢結果的介面，但卻無法成功執行時，可能的原因有以下幾種：
+
+### 1. **UI 執行緒問題**
+   - 在非同步函式中，必須在 UI 執行緒上進行 UI 更新操作。如果你在背景執行緒上嘗試更新 UI，這將導致 UI 更新失敗或產生異常。
+
+### 2. **順序問題**
+   - 如果更新過濾器的介面是非同步操作，且你沒有正確使用 `Await`，則後續的查詢結果更新可能在過濾器更新完成之前就已經開始，導致錯誤或結果不一致。
+
+### 3. **資料狀態問題**
+   - 更新過濾器可能會改變數據源的狀態，這會影響到後續查詢結果的正確性。需要確保更新過濾器的操作完成後，數據源已經處於正確的狀態。
+
+### 解決方法
+
+#### 1. 確保在 UI 執行緒上更新介面
+
+當你需要在非同步操作中更新 UI 時，使用 `Await` 來確保這些操作在主執行緒上執行。比如：
+
+```vb
+Public Async Function UpdateInterfaceAsync() As Task
+    ' 更新過濾器介面
+    Await Task.Run(Sub()
+                       ' 這裡放置非同步的數據處理邏輯
+                       ' 但確保 UI 更新是在 UI 執行緒上
+                       Me.Invoke(Sub() UpdateFilterUI())
+                   End Sub)
+
+    ' 在過濾器更新完成後，再更新查詢結果
+    UpdateQueryResults()
+End Function
+
+Private Sub UpdateFilterUI()
+    ' 這裡更新 UI 介面，比如 ComboBox 或 TextBox
+    ComboBox1.Items.Clear()
+    ComboBox1.Items.AddRange(New String() {"Option1", "Option2"})
+End Sub
+
+Private Sub UpdateQueryResults()
+    ' 執行查詢結果的更新
+    ' 這裡的邏輯可能是基於更新過的過濾器
+    Console.WriteLine("Query results updated.")
+End Sub
+```
+
+#### 2. 確保過濾器更新完成後再進行查詢結果更新
+
+在非同步操作中，確保過濾器更新完成後再進行查詢結果的更新。這可以通過 `Await` 關鍵字來保證順序執行：
+
+```vb
+Public Async Function UpdateFilterAndQueryAsync() As Task
+    ' 等待過濾器更新完成
+    Await UpdateFilterAsync()
+
+    ' 然後更新查詢結果
+    UpdateQueryResults()
+End Function
+
+Private Async Function UpdateFilterAsync() As Task
+    ' 更新過濾器邏輯，這裡可以是非同步操作
+    Await Task.Delay(1000)  ' 模擬非同步操作
+    ' 更新 UI 在主執行緒上執行
+    Me.Invoke(Sub() UpdateFilterUI())
+End Function
+```
+
+### 3. 檢查資料狀態的一致性
+
+確保過濾器更新不會導致資料狀態變得不一致。如果過濾器的更新改變了數據源或查詢邏輯，確保後續的查詢結果更新考慮到了這些變更。
+
+### 結論
+
+當你在非同步操作中進行 UI 更新後再執行其他操作時，關鍵是要確保這些操作按照正確的順序執行，並且所有的 UI 更新都在主執行緒上進行。使用 `Await` 來控制操作的順序，以及在必要時使用 `Invoke` 或其他方式確保 UI 操作在正確的執行緒上進行，能幫助你避免這些問題。
+
 在一個 `Async` 函式執行完後再進行下一個操作，你可以使用 `Await` 關鍵字來確保操作按順序進行。當你 `Await` 一個 `Task` 時，程式會暫停在該位置，直到這個 `Task` 完成，然後再繼續執行後面的程式碼。
 
 ### 例子：
