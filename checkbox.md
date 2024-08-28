@@ -1,3 +1,59 @@
+若要在你的程式中處理一個字符串數組，該數組包含被勾選的 CheckBox 名稱，並將這些名稱與你在表中生成的 CheckBox 進行對應，使得對應的 CheckBox 顯示為已勾選狀態，你可以修改 `AddCheckBoxesToStrings` 函式，加入這個功能。以下是實現步驟：
+
+### 步驟 1: 修改 `AddCheckBoxesToStrings` 函式
+
+你需要將一個額外的參數加入到函式中，這個參數用來傳遞被勾選的 CheckBox 的名稱。然後在創建 CheckBox 時檢查這個名稱是否在被勾選的列表中。
+
+```vb
+Private Sub AddCheckBoxesToStrings(strings As String(), checkedItems As String())
+    Table1.Rows.Clear()  ' 清空現有的 Rows
+
+    Dim row As TableRow = New TableRow()  ' 初始化第一個 TableRow
+    Table1.Rows.Add(row)
+
+    ' 遍歷字符串數組
+    For i As Integer = 0 To strings.Length - 1
+        If i > 0 AndAlso i Mod 5 = 0 Then  ' 每 5 個元素換行
+            row = New TableRow()
+            Table1.Rows.Add(row)
+        End If
+
+        ' 創建 TableCell 和 CheckBox
+        Dim cell As New TableCell()
+        Dim checkBox As New CheckBox()
+        checkBox.ID = "CheckBox" & strings(i)  ' 給 CheckBox 一個基於字符串的唯一 ID
+        checkBox.Text = strings(i)
+
+        ' 檢查是否需要將 CheckBox 設為已勾選
+        If checkedItems.Contains(strings(i)) Then
+            checkBox.Checked = True
+        End If
+
+        ' 將 CheckBox 添加到 TableCell 和 TableRow
+        cell.Controls.Add(checkBox)
+        row.Cells.Add(cell)
+    Next
+End Sub
+```
+
+### 步驟 2: 調用函式並傳遞被勾選的項目
+
+當你調用 `AddCheckBoxesToStrings` 函式時，你需要傳遞兩個參數：所有可用的字符串和被勾選的字符串數組。例如：
+
+```vb
+Protected Sub Page_Load(sender As Object, e As EventArgs) Handles Me.Load
+    If Not IsPostBack Then
+        Dim strings As String() = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}
+        Dim checkedStrings As String() = {"B", "D", "H", "I"}
+        AddCheckBoxesToStrings(strings, checkedStrings)
+    End If
+End Sub
+```
+
+### 說明
+
+這個修改確保了當頁面加載時，根據提供的被勾選的 CheckBox 名稱數組，相應的 CheckBox 將顯示為已勾選狀態。這種方式可以靈活地用於動態地生成表單元素並根據用戶的先前選擇來設置狀態。
+
 要將 CheckBoxes 排列成一個 5 x N 的表格格式，你需要修改添加 CheckBoxes 到 Table 的方式，使得每 5 個 CheckBoxes 就換行。以下是修改過的 `AddCheckBoxesToStrings` 函式來實現這種排列：
 
 ### 步驟 1: 修改函式來支持 5 x N 排列
