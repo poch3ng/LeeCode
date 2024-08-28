@@ -1,3 +1,53 @@
+要將 CheckBoxes 排列成一個 5 x N 的表格格式，你需要修改添加 CheckBoxes 到 Table 的方式，使得每 5 個 CheckBoxes 就換行。以下是修改過的 `AddCheckBoxesToStrings` 函式來實現這種排列：
+
+### 步驟 1: 修改函式來支持 5 x N 排列
+
+在你的 `.aspx.vb` 文件中，調整 `AddCheckBoxesToStrings` 函式：
+
+```vb
+Private Sub AddCheckBoxesToStrings(strings As String())
+    Table1.Rows.Clear()  ' 清空現有的 Rows
+
+    Dim row As TableRow = New TableRow()  ' 初始化第一個 TableRow
+    Table1.Rows.Add(row)
+
+    ' 遍歷字符串數組
+    For i As Integer = 0 To strings.Length - 1
+        If i > 0 AndAlso i Mod 5 = 0 Then  ' 每 5 個元素換行
+            row = New TableRow()
+            Table1.Rows.Add(row)
+        End If
+
+        ' 創建 TableCell 和 CheckBox
+        Dim cell As New TableCell()
+        Dim checkBox As New CheckBox()
+        checkBox.ID = "CheckBox" & strings(i)  ' 給 CheckBox 一個基於字符串的唯一 ID
+        checkBox.Text = strings(i)
+
+        ' 將 CheckBox 添加到 TableCell 和 TableRow
+        cell.Controls.Add(checkBox)
+        row.Cells.Add(cell)
+    Next
+End Sub
+```
+
+### 步驟 2: 使用函式
+
+這個函式現在將以 5 x N 格式將 CheckBoxes 添加到 Table 中。你可以在 `Page_Load` 事件或其他適合的位置呼叫這個函式，例如：
+
+```vb
+Protected Sub Page_Load(sender As Object, e As EventArgs) Handles Me.Load
+    If Not IsPostBack Then
+        Dim strings As String() = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}
+        AddCheckBoxesToStrings(strings)
+    End If
+End Sub
+```
+
+### 說明
+
+這個改進的 `AddCheckBoxesToStrings` 函式現在會檢查是否每添加 5 個 CheckBoxes 就開始一個新的 TableRow。這樣可以確保 CheckBoxes 在頁面上整齊地按 5 x N 格式排列。
+
 如果你想從 `DataSet` 轉換資料到一個字符串數組，通常會是從 `DataSet` 中的一個 `DataTable` 提取一列的值。以下是一個步驟說明如何在 VB.NET 中實現這個功能：
 
 ### 步驟 1: 準備 DataSet
