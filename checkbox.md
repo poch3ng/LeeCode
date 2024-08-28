@@ -1,3 +1,62 @@
+為了實現按下“保存”按鈕後將勾選的 CheckBox 屬性保存到資料庫，並移除未勾選的屬性，你需要做以下幾個步驟：
+
+### 步驟 1: 準備保存按鈕
+
+首先，確保你的 WebForm 上有一個“保存”按鈕。你可以在 `.aspx` 文件中這樣添加：
+
+```asp
+<asp:Button ID="btnSave" runat="server" Text="Save" OnClick="btnSave_Click" />
+```
+
+### 步驟 2: 實現保存功能的後端處理
+
+在你的 `.aspx.vb` 文件中，添加 `btnSave_Click` 事件處理程序。這個事件處理程序將檢查哪些 CheckBox 被勾選，哪些被取消勾選，並相應地更新資料庫：
+
+```vb
+Protected Sub btnSave_Click(sender As Object, e As EventArgs)
+    ' 假設 strings 包含所有可能的 CheckBox 產品屬性
+    Dim strings As String() = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}
+
+    ' 檢查哪些 CheckBox 被勾選
+    Dim checkedItems As New List(Of String)()
+    For Each str As String In strings
+        Dim checkBox As CheckBox = DirectCast(Table1.FindControl("CheckBox" & str), CheckBox)
+        If checkBox IsNot Nothing AndAlso checkBox.Checked Then
+            checkedItems.Add(str)
+        End If
+    Next
+
+    ' 更新資料庫
+    UpdateDatabase(checkedItems)
+End Sub
+
+Private Sub UpdateDatabase(checkedItems As List(Of String))
+    ' 這裡需要實現與資料庫的連接和更新邏輯
+    ' 範例代碼中不包括實際的資料庫操作，你需要根據你的資料庫結構實現這部分
+    Using conn As New SqlConnection("your_connection_string")
+        conn.Open()
+        ' 移除所有未勾選的屬性
+        Dim cmdRemove As New SqlCommand("DELETE FROM YourTable WHERE Attribute NOT IN (@CheckedItems) AND ProductName = 'iphone'", conn)
+        cmdRemove.Parameters.AddWithValue("@CheckedItems", String.Join(",", checkedItems))
+        cmdRemove.ExecuteNonQuery()
+
+        ' 添加或更新勾選的屬性
+        For Each item In checkedItems
+            Dim cmdAddOrUpdate As New SqlCommand("IF NOT EXISTS (SELECT * FROM YourTable WHERE Attribute = @Attribute AND ProductName = 'iphone') INSERT INTO YourTable (ProductName, Attribute) VALUES ('iphone', @Attribute) ELSE UPDATE YourTable SET Attribute = @Attribute WHERE ProductName = 'iphone' AND Attribute = @Attribute", conn)
+            cmdAddOrUpdate.Parameters.AddWithValue("@Attribute", item)
+            cmdAddOrUpdate.ExecuteNonQuery()
+        Next
+    End Using
+End Sub
+```
+
+### 說明
+
+1. **事件處理程序 (`btnSave_Click`)**: 檢查所有的 CheckBox 是否被勾選，並收集被勾選的項目。
+2. **更新資料庫 (`UpdateDatabase`)**: 這個方法將接受一個包含被勾選項目的列表，並對資料庫進行更新。這包括刪除未被勾選的項目和添加或更新勾選的項目。
+
+這個代碼示例提供了一個基本框架，你需要根據你的實際資料庫結構和連接細節來填充具體的資料庫操作代碼。這包括設置正確的連接字符串以及根據實際的資料表結構調整 SQL 查詢。
+
 若要在你的程式中處理一個字符串數組，該數組包含被勾選的 CheckBox 名稱，並將這些名稱與你在表中生成的 CheckBox 進行對應，使得對應的 CheckBox 顯示為已勾選狀態，你可以修改 `AddCheckBoxesToStrings` 函式，加入這個功能。以下是實現步驟：
 
 ### 步驟 1: 修改 `AddCheckBoxesToStrings` 函式
