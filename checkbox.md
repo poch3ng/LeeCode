@@ -1,3 +1,62 @@
+如果你的 `CheckBox` 控件的 ID 在运行时被添加了如 `"ContentPlaceHolder2_"` 的前缀，这通常是因为你的控件位于一个 `Master Page` 中的 `ContentPlaceHolder` 控件内。ASP.NET Web Forms 在渲染页面时会为控件自动添加这种前缀，以保持唯一性，特别是在使用 `Master Page` 或其他复合控件的情况下。
+
+### 解决方案
+
+要适应这种 ID 变化，你需要在查找控件时考虑到这种前缀。下面是两种解决这个问题的方法：
+
+#### 方法 1: 使用已修改的 `FindControlRecursive` 方法
+你可以使用先前提供的 `FindControlRecursive` 方法，并在查找控件时包括前缀。这需要你知道确切的前缀：
+
+```vb
+Dim checkBox As CheckBox = DirectCast(FindControlRecursive(Table1, "ContentPlaceHolder2_CheckBox" & str), CheckBox)
+```
+
+这种方法适用于你已知确切前缀的情况。但如果前缀可能变化，或者你想编写更灵活的代码，可以考虑下面的方法。
+
+#### 方法 2: 修改 `FindControlRecursive` 方法以忽略前缀
+你可以修改 `FindControlRecursive` 方法，使其在匹配 ID 时忽略特定前缀：
+
+```vb
+Private Function FindControlRecursive(rootControl As Control, id As String) As Control
+    If rootControl.ID IsNot Nothing AndAlso rootControl.ID.EndsWith(id) Then
+        Return rootControl
+    End If
+
+    For Each control As Control In rootControl.Controls
+        Dim foundControl As Control = FindControlRecursive(control, id)
+        If foundControl IsNot Nothing Then
+            Return foundControl
+        End If
+    Next
+
+    Return Nothing
+End Function
+```
+
+在这个修改版本中，方法不是检查完全的 ID 是否匹配，而是检查 ID 是否以指定的后缀结束。这样，不论控件的 ID 前面添加了什么前缀，只要后缀正确即可识别。
+
+### 使用方法
+在调用这个函数时，只需传入你期望的 CheckBox 的 ID 后缀（不包括前缀）：
+
+```vb
+Protected Sub btnSave_Click(sender As Object, e As EventArgs)
+    Dim strings As String() = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}
+
+    Dim checkedItems As New List(Of String)()
+    For Each str As String In strings
+        Dim checkBoxId As String = "CheckBox" & str
+        Dim checkBox As CheckBox = DirectCast(FindControlRecursive(Table1, checkBoxId), CheckBox)
+        If checkBox IsNot Nothing AndAlso checkBox.Checked Then
+            checkedItems.Add(str)
+        End If
+    Next
+
+    UpdateDatabase(checkedItems)
+End Sub
+```
+
+这些调整确保你的代码可以正确地找到并操作嵌套在 `Master Page` 中的控件，即使 ASP.NET 在运行时修改了它们的 ID。
+
 為了實現按下“保存”按鈕後將勾選的 CheckBox 屬性保存到資料庫，並移除未勾選的屬性，你需要做以下幾個步驟：
 
 ### 步驟 1: 準備保存按鈕
