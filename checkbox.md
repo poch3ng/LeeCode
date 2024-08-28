@@ -1,3 +1,40 @@
+使用 `TableRow` 和 `TableCell` 确实可能影响通过 `FindControl` 查找控件的过程，因为这些控件本身是容器，它们创建了一个控件层级，这可能使得 `FindControl` 需要更多的细致操作来正确地定位到嵌套的子控件。
+
+### 解释：
+在 ASP.NET Web Forms 中，当控件（如 `CheckBox`）被放置在 `TableRow` 或 `TableCell` 中时，这些控件变成了 `Table` 控件的孙控件而不是直接的子控件。这意味着，如果你尝试从 `Table` 直接调用 `FindControl`，它将无法找到那些嵌套在行或单元格中的控件，因为 `FindControl` 只能搜索直接子控件。
+
+### 解决方案：
+
+为了找到这些嵌套的控件，你需要遍历每个 `TableRow` 和 `TableCell`，然后在每个单元格内调用 `FindControl`。这里是如何实现这一点的代码示例：
+
+```vb
+Protected Sub btnSave_Click(sender As Object, e As EventArgs)
+    Dim checkedItems As New List(Of String)()
+
+    ' 遍历每个 TableRow 和 TableCell
+    For Each row As TableRow In Table1.Rows
+        For Each cell As TableCell In row.Cells
+            ' 假设每个单元格中只有一个 CheckBox
+            Dim checkBox As CheckBox = TryCast(cell.Controls(0), CheckBox)
+            If checkBox IsNot Nothing AndAlso checkBox.Checked Then
+                ' 假设 CheckBox 的 ID 形式为 "CheckBox<SomeIdentifier>"
+                checkedItems.Add(checkBox.ID)
+            End If
+        Next
+    Next
+
+    ' 更新数据库
+    UpdateDatabase(checkedItems)
+End Sub
+```
+
+### 注意事项：
+1. **假设**：上面的代码假设每个 `TableCell` 中只有一个控件，且该控件是 `CheckBox`。如果实际情况更复杂，你需要适当调整这部分逻辑。
+2. **通用性**：这种方法比较通用，因为它直接遍历表格中的所有单元格，而不依赖于控件的具体 ID。如果你的 `CheckBox` 控件的 ID 有特定前缀或格式，你可能需要在添加到 `checkedItems` 列表之前进行字符串处理。
+3. **性能**：虽然这种方法在控件数量较少时表现良好，但如果 `Table` 包含大量的行和单元格，这可能会影响性能。在这种情况下，考虑其他优化方式，如缓存控件引用或在页面加载时预先收集控件信息，可能是有帮助的。
+
+以上方法应该可以帮助你正确地从 `Table` 中检索和处理 `CheckBox` 控件。如果还有其他问题或需要进一步的帮助，请随时提问！
+
 如果你的 `CheckBox` 控件的 ID 在运行时被添加了如 `"ContentPlaceHolder2_"` 的前缀，这通常是因为你的控件位于一个 `Master Page` 中的 `ContentPlaceHolder` 控件内。ASP.NET Web Forms 在渲染页面时会为控件自动添加这种前缀，以保持唯一性，特别是在使用 `Master Page` 或其他复合控件的情况下。
 
 ### 解决方案
