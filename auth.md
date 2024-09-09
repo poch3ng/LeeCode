@@ -1,3 +1,45 @@
+如果您的 `LoginView` 控件只使用了 `AnonymousTemplate` 和 `LoggedInTemplate`，而没有用到 `LoggedOutTemplate`，这可能导致了您提到的用户无法正常登出并重新输入账号密码的问题。在 ASP.NET 的 `LoginView` 控件中，合理使用模板对于控制不同登录状态下用户所看到的内容非常关键。
+
+### 理解 `LoginView` 控件的模板
+
+- **`AnonymousTemplate`**：显示给未认证（未登录）的用户。如果用户未登录，应显示登录链接或表单。
+- **`LoggedInTemplate`**：显示给已认证（已登录）的用户。通常包含欢迎信息、用户信息和登出按钮。
+
+### 配置 `LoginView` 控件
+
+如果您想要确保用户在登出后能看到登录选项以重新登录，您应该在 `LoggedOutTemplate` 中提供这些选项。但如果您没有使用 `LoggedOutTemplate`，那么在 `AnonymousTemplate` 中应包含用于登录的必要元素。这是一个配置示例：
+
+```asp
+<asp:LoginView runat="server" ID="LoginView1">
+    <AnonymousTemplate>
+        欢迎访问我们的网站，请<a href="Login.aspx">登录</a>。
+    </AnonymousTemplate>
+    <LoggedInTemplate>
+        欢迎, <asp:LoginName ID="LoginName1" runat="server" />!
+        <asp:LoginStatus ID="LoginStatus1" runat="server" LogoutAction="Redirect" LogoutPageUrl="Login.aspx" />
+    </LoggedInTemplate>
+</asp:LoginView>
+```
+
+### 确保正确的登出逻辑
+
+在您的登出逻辑中，确保使用 `FormsAuthentication.SignOut()` 方法来清除用户的登录状态，并重定向用户到一个可以再次显示 `AnonymousTemplate` 的页面：
+
+```csharp
+protected void LogoutButton_Click(object sender, EventArgs e)
+{
+    FormsAuthentication.SignOut();
+    Response.Redirect("Login.aspx");  // 重定向到登录页面
+}
+```
+
+### 检查和测试
+
+1. **检查登录页面（`Login.aspx`）**：确保登录页面能正确处理登录逻辑，并在登录成功后转到默认页面或指定页面。
+2. **测试登录和登出流程**：确认登录后能看到 `LoggedInTemplate`，并确保登出后能够重新看到 `AnonymousTemplate`，从而允许用户再次登录。
+
+通过上述设置，您可以确保在用户登出后，`LoginView` 控件能正确地返回到显示登录选项的状态，让用户有机会重新登录。这样做可以避免因状态不正确而导致的用户界面问题。
+
 要在 ASP.NET WebForms 應用中使得 MasterPage 上的兩個 `LinkButton` 控件僅在用戶登入後顯示，您可以利用程式碼後端來動態控制這些控件的 `Visible` 屬性。這裡提供一個基本的步驟來實現這個需求：
 
 ### 步驟 1: 設定控件
