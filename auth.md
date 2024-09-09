@@ -1,3 +1,92 @@
+如果您的 `Login` 页面和 `Default` 页面是同一个（即用户登录的页面就是 `Default.aspx`），您需要确保处理身份验证逻辑时避免造成循环重定向或其他潜在问题。以下是您应该采取的步骤来配置和管理这种情况：
+
+### 步骤 1：配置 `web.config`
+
+首先确保 `web.config` 文件中的 `<authentication>` 标签正确设置：
+
+```xml
+<authentication mode="Forms">
+    <forms loginUrl="~/Default.aspx" defaultUrl="~/Default.aspx" timeout="2880" />
+</authentication>
+```
+
+在这种配置下，`loginUrl` 和 `defaultUrl` 都设置为 `Default.aspx`。这意味着身份验证失败时，用户将被重定向到 `Default.aspx`，并且登录成功后也会重定向到同一页面。
+
+### 步骤 2：更新 `Default.aspx` 的代码
+
+在 `Default.aspx` 的代码中，您需要添加逻辑来区分未登录用户和已登录用户的显示内容。这可以通过检查用户的身份验证状态来实现：
+
+#### Default.aspx 的 VB 后端代码：
+
+```vb
+Partial Class _Default
+    Inherits System.Web.UI.Page
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        If Not IsPostBack Then
+            If HttpContext.Current.User.Identity.IsAuthenticated Then
+                ' 显示已登录用户的内容
+                welcomeLabel.Text = "欢迎, " & HttpContext.Current.User.Identity.Name
+                loginPanel.Visible = False
+                contentPanel.Visible = True
+            Else
+                ' 显示登录表单
+                loginPanel.Visible = True
+                contentPanel.Visible = False
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnLogin_Click(sender As Object, e As EventArgs)
+        Dim username As String = txtUsername.Text
+        Dim password As String = txtPassword.Text
+
+        If IsValidUser(username, password) Then
+            FormsAuthentication.SetAuthCookie(username, chkRememberMe.Checked)
+            Response.Redirect(FormsAuthentication.GetRedirectUrl(username, chkRememberMe.Checked))
+        Else
+            lblErrorMessage.Text = "登录失败，请检查用户名和密码是否正确。"
+        End If
+    End Sub
+
+    Private Function IsValidUser(username As String, password As String) As Boolean
+        ' 实际项目中应与数据库中的记录进行比对
+        Return username = "admin" AndAlso password = "password"
+    End Function
+End Class
+```
+
+#### Default.aspx 的标记：
+
+```asp
+<%@ Page Language="VB" AutoEventWireup="false" CodeFile="Default.aspx.vb" Inherits="_Default" %>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Default Page</title>
+</head>
+<body>
+    <asp:Panel ID="loginPanel" runat="server">
+        Username: <asp:TextBox ID="txtUsername" runat="server"></asp:TextBox>
+        <br />
+        Password: <asp:TextBox ID="txtPassword" runat="server" TextMode="Password"></asp:TextBox>
+        <br />
+        Remember me: <asp:CheckBox ID="chkRememberMe" runat="server" />
+        <br />
+        <asp:Button ID="btnLogin" runat="server" Text="Login" OnClick="btnLogin_Click" />
+        <asp:Label ID="lblErrorMessage" runat="server" ForeColor="Red"></asp:Label>
+    </asp:Panel>
+    <asp:Panel ID="contentPanel" runat="server" Visible="False">
+        <asp:Label ID="welcomeLabel" runat="server" Text=""></asp:Label>
+        <br />
+        <!-- 其他已登录用户可见的内容 -->
+    </asp:Panel>
+</body>
+</html>
+```
+
+这种设置允许 `Default.aspx` 同时处理登录和展示内容，从而简化用户体验。确保进行充分的测试，特别是在不同的认证状态下，以验证重定向和内容显示逻辑是否如预期工作。
+
 如果您在登出后还是一直显示 `LoggedInTemplate`，说明用户的身份验证状态可能没有被正确清除，或者页面没有正确更新以反映用户的新状态。这里有一些步骤和检查点，可以帮助您解决这个问题：
 
 ### 1. 确保正确使用 `FormsAuthentication.SignOut`
