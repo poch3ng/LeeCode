@@ -1,3 +1,77 @@
+當視窗縮小時，按鈕疊在一起通常是因為按鈕的容器沒有足夠的空間讓按鈕水平排列。為了解決這個問題，我們可以讓按鈕在視窗變小的時候自動進行垂直排列，或調整它們的間距，確保它們不會重疊。
+
+### 解決方案：
+1. **使用 `Flexbox`**：讓按鈕在寬度不足時自動換行或改變排列方向。
+2. **使用 `Media Queries`**：當視窗變小時，動態調整按鈕排列方式，例如在小螢幕下將按鈕垂直排列。
+
+### 修改方式：
+
+#### 1. **讓按鈕在寬度不足時自動換行**
+   這可以通過 `flex-wrap: wrap` 來實現。當空間不足時，按鈕會自動換行。
+
+```css
+.button-container {
+    position: absolute;
+    top: 70%; /* 按鈕容器的位置，根據需要調整 */
+    left: 25%; /* 從左邊過來 25% */
+    display: flex;
+    gap: 20px; /* 按鈕之間的間距 */
+    flex-wrap: wrap; /* 當按鈕無法水平排列時自動換行 */
+    transform: translateY(-50%);
+}
+```
+
+#### 2. **使用 `Media Queries` 進行響應式設計**
+   當螢幕縮小時，可以通過 `Media Queries` 將按鈕從水平排列改為垂直排列，這樣它們就不會重疊。
+
+```css
+@media screen and (max-width: 768px) {
+    .button-container {
+        flex-direction: column; /* 在小螢幕上按鈕垂直排列 */
+        left: 10%; /* 根據螢幕大小調整按鈕的位置 */
+        top: 80%; /* 按鈕容器在小螢幕下的位置調整 */
+    }
+
+    .custom-link {
+        width: auto; /* 保證按鈕的寬度自適應 */
+        font-size: 14px; /* 調整字體大小 */
+        padding: 8px 16px; /* 調整按鈕的內邊距 */
+    }
+}
+```
+
+#### 3. **完整範例**
+
+```css
+.image-container {
+    position: relative; /* 設置容器為相對定位，方便按鈕絕對定位 */
+    width: 100%;
+    max-width: 1920px; /* 確保圖片寬度不超過原始大小 */
+    height: 159px;     /* 固定高度，與圖片一致 */
+}
+
+.background-image {
+    width: 100%;
+    height: 100%;
+    background-image: url('your-image.jpg');
+    background-size: cover; /* 確保圖片完全覆蓋容器 */
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.button-container {
+    position: absolute;
+    top: 70%; /* 將按鈕容器位置調整到圖片的 70% 高度處 */
+    left: 25%; /* 從左邊過來 25% */
+    display: flex;
+    gap: 20px; /* 按鈕之間的間距 */
+    flex-wrap: wrap; /* 當按鈕無法水平排列時自動換行 */
+    transform: translateY(-50%);
+}
+
+.custom-link {
+    padding: 10px 20px
+
 如果圖片是固定大小的 1920x159，並且在頁面顯示時下方有空白，這通常是因為圖片的寬度佔滿了頁面寬度，但圖片高度固定，導致在圖片下方出現了多餘的空白區域。要解決這個問題，你可以使用以下幾種方法來調整圖片的顯示方式，使其適應頁面的大小，而不會在下方產生空白。
 
 ### 1. **設置圖片容器的背景圖片**
