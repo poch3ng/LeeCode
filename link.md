@@ -1,3 +1,85 @@
+要實現 `LinkButton` 重疊在圖片上，且位置能根據圖片的大小動態調整，你可以使用 `position: absolute` 和 `position: relative` 來實現這種效果。這樣，按鈕會疊加在圖片上，並且隨著圖片的大小進行相應的變化。
+
+### 具體步驟如下：
+
+### 1. **HTML 結構**
+你可以使用 `div` 容器來包裹圖片和按鈕，並且確保這個 `div` 使用相對定位 (`position: relative`)。這樣，按鈕就可以通過絕對定位 (`position: absolute`) 來相對於圖片進行定位。
+
+```html
+<div class="image-container">
+    <img src="your-image.jpg" alt="Background Image" class="background-image" />
+    
+    <!-- LinkButton 1 -->
+    <asp:LinkButton ID="LinkButton1" runat="server" CssClass="custom-link">Link 1</asp:LinkButton>
+    
+    <!-- LinkButton 2 -->
+    <asp:LinkButton ID="LinkButton2" runat="server" CssClass="custom-link">Link 2</asp:LinkButton>
+</div>
+```
+
+### 2. **CSS 設定**
+
+你需要設定圖片和按鈕的樣式，使用 `position: absolute` 將按鈕疊加在圖片上。可以使用百分比來確定按鈕在圖片上的位置，這樣可以實現動態調整。
+
+```css
+.image-container {
+    position: relative;
+    width: 100%;   /* 圖片容器的寬度設置為100% */
+    max-width: 1897px; /* 確保圖片不會超過其原始寬度 */
+    height: auto;  /* 高度自動調整，保持圖片的比例 */
+}
+
+.background-image {
+    width: 100%;   /* 圖片寬度佔滿容器 */
+    height: auto;  /* 保持圖片比例 */
+}
+
+.custom-link {
+    position: absolute;
+    top: 50%;        /* 按鈕垂直位置設置在圖片高度的 50% */
+    left: 25%;       /* 按鈕水平位置設置在圖片寬度的 25% (即1/4處) */
+    transform: translate(-50%, -50%); /* 使按鈕的中心點對齊定位點 */
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* 背景色稍微透明，讓按鈕與圖片區分 */
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.custom-link + .custom-link {
+    top: 60%;  /* 第二個按鈕的位置，稍微下移 */
+}
+```
+
+### 3. **按鈕在圖片上動態調整位置**
+使用百分比 (`left: 25%`、`top: 50%`) 來控制按鈕的位置，這樣當圖片縮放時，按鈕的位置也會相應調整。另外，通過 `transform: translate(-50%, -50%)` 將按鈕的中心對齊你指定的定位點，使按鈕更加精確地定位在圖片上。
+
+### 4. **響應式布局（可選）**
+
+如果需要根據不同裝置大小進行進一步調整，可以使用 Media Queries 來實現響應式布局。
+
+```css
+@media screen and (max-width: 768px) {
+    .custom-link {
+        font-size: 14px; /* 調整字體大小 */
+        padding: 8px 16px; /* 調整按鈕大小 */
+    }
+}
+```
+
+### 最終效果：
+- 圖片和按鈕會動態調整大小，當圖片變大或變小時，按鈕的位置也會根據圖片的比例自動調整。
+- 按鈕會重疊在圖片上，並且根據你指定的位置顯示在圖片的左側 1/4 和中央（或其他你定義的位置）。
+
+### 總結：
+- 使用 `position: absolute` 將按鈕疊加在圖片上。
+- 使用百分比 (`left` 和 `top`) 來動態控制按鈕的位置，使其隨著圖片大小的變化進行調整。
+- 確保圖片和容器的寬度和高度是響應式的 (`width: 100%` 和 `height: auto`)。
+
+這樣就可以實現按鈕重疊在圖片上，並且位置會隨著圖片大小動態調整。
+
 要讓兩個 `LinkButton` 在圖片上動態顯示位置（例如根據螢幕大小或圖片大小自動調整），可以使用百分比布局或 CSS Flexbox/Grid 等響應式技術，這樣不管圖片的大小或螢幕的寬度如何改變，按鈕的位置都能自動調整。
 
 以下是實現動態布局的方法：
