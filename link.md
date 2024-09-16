@@ -1,3 +1,124 @@
+如果圖片是固定大小的 1920x159，並且在頁面顯示時下方有空白，這通常是因為圖片的寬度佔滿了頁面寬度，但圖片高度固定，導致在圖片下方出現了多餘的空白區域。要解決這個問題，你可以使用以下幾種方法來調整圖片的顯示方式，使其適應頁面的大小，而不會在下方產生空白。
+
+### 1. **設置圖片容器的背景圖片**
+
+如果你希望圖片自適應寬度並避免下方的空白，最好的解決方案是將圖片設為容器的背景圖片，並使用 `background-size: cover` 或 `background-size: contain` 來控制其顯示效果。這樣圖片會根據容器的大小自動調整，避免空白出現。
+
+#### 具體步驟：
+
+### HTML
+將圖片設置為容器的背景，而不是直接使用 `<img>` 標籤。
+
+```html
+<div class="image-container">
+    <div class="background-image">
+        <!-- 按鈕直接放在背景圖片上 -->
+        <div class="button-container">
+            <asp:LinkButton ID="LinkButton1" runat="server" CssClass="custom-link">Link 1</asp:LinkButton>
+            <asp:LinkButton ID="LinkButton2" runat="server" CssClass="custom-link">Link 2</asp:LinkButton>
+        </div>
+    </div>
+</div>
+```
+
+### CSS
+使用 `background-image` 設置圖片，並使用 `background-size: cover` 來確保圖片會自動調整以適應容器的大小。
+
+```css
+.image-container {
+    width: 100%;
+    height: 159px; /* 固定高度，與圖片一致 */
+    position: relative;
+}
+
+.background-image {
+    width: 100%;
+    height: 100%;
+    background-image: url('your-image.jpg');
+    background-size: cover; /* 確保圖片完全覆蓋容器 */
+    background-position: center; /* 圖片居中 */
+    background-repeat: no-repeat; /* 避免重複顯示圖片 */
+}
+
+.button-container {
+    position: absolute;
+    top: 50%;
+    left: 25%;
+    display: flex;
+    gap: 20px;
+    transform: translateY(-50%);
+}
+
+.custom-link {
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+    cursor: pointer;
+}
+```
+
+### 2. **使用 `img` 並設置圖片高度為 `auto`**
+如果你仍然希望使用 `<img>` 元素而不是背景圖片，那麼可以通過設置圖片的高度為自動 (`height: auto`) 來確保圖片保持比例，不會導致下方出現多餘的空白。這樣，圖片會根據其內容進行調整。
+
+#### 修改 CSS 如下：
+```css
+.image-container {
+    width: 100%;
+    max-width: 1920px; /* 確保圖片不超過原始寬度 */
+    height: 159px; /* 固定高度 */
+    position: relative;
+    overflow: hidden; /* 避免內容超出容器邊界 */
+}
+
+.background-image {
+    width: 100%;
+    height: auto; /* 自動調整高度，保持圖片比例 */
+    display: block; /* 消除圖片周圍的空白 */
+}
+
+.button-container {
+    position: absolute;
+    top: 50%;
+    left: 25%;
+    display: flex;
+    gap: 20px;
+    transform: translateY(-50%);
+}
+
+.custom-link {
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+    cursor: pointer;
+}
+```
+
+### 3. **設置 `object-fit`（如果使用 `<img>` 標籤）**
+你也可以使用 `object-fit` 屬性來調整圖片的顯示，確保圖片按照需要自動縮放。這樣可以避免圖片下方產生空白。
+
+#### 修改 `img` 標籤：
+```css
+.background-image {
+    width: 100%;
+    height: 159px; /* 固定高度 */
+    object-fit: cover; /* 圖片會自動縮放並覆蓋容器 */
+    display: block;
+}
+```
+
+### 總結：
+1. **背景圖片解決方案**：使用 `background-image` 並設置 `background-size: cover`，確保圖片覆蓋容器且不會產生空白。
+2. **`img` 元素方案**：使用 `height: auto` 讓圖片保持比例並自動調整高度，或使用 `object-fit: cover` 來確保圖片適應容器大小。
+3. **響應式設計**：無論使用哪種方法，都應考慮圖片的響應式布局，確保在不同的螢幕大小下顯示正常，避免出現空白區域。
+
+這些方法能確保圖片與按鈕能動態適應頁面，且不會在圖片下方產生空白。
+
 要實現 `LinkButton` 重疊在圖片上，且位置能根據圖片的大小動態調整，你可以使用 `position: absolute` 和 `position: relative` 來實現這種效果。這樣，按鈕會疊加在圖片上，並且隨著圖片的大小進行相應的變化。
 
 ### 具體步驟如下：
