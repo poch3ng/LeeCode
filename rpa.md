@@ -1,3 +1,58 @@
+了解了，若你希望每個月的 **1 號** 都被視為上個月的話，這樣的邏輯可以應用到所有月份的情況。也就是說，如果是 **10 月 1 號**，它應被視為 **9 月**；如果是 **11 月 1 號**，它應被視為 **10 月**，以此類推。
+
+### 更新邏輯：
+
+#### 條件：
+- **每月 1 號** → 算作 **上個月**。
+- **其他日期** → 使用當前月份。
+
+### 實作步驟：
+
+#### 1. **使用 `Assign` 活動來實現邏輯判斷**：
+
+```plaintext
+YearForSheet = Now.Year.ToString()
+MonthForSheet = If(Now.Day = 1, Now.Month - 1, Now.Month)
+
+' 特殊情況：如果是1月1日，則應該回到上一年的12月
+If Now.Month = 1 And Now.Day = 1 Then
+    YearForSheet = (Now.Year - 1).ToString()
+    MonthForSheet = 12
+End If
+
+SheetName = YearForSheet + "-" + MonthForSheet.ToString() + "月"
+```
+
+### 解釋：
+
+1. **YearForSheet**：設置為當前年份。
+2. **MonthForSheet**：
+   - 如果是每月的 **1 號**，則將 `MonthForSheet` 設置為 **上個月**，即 `Now.Month - 1`。
+   - 如果是 1 月 1 號，則需要特別處理，因為此時應該算作上一年的 12 月。
+3. **拼接工作表名稱**：
+   - 根據 `YearForSheet` 和 `MonthForSheet` 來生成正確的工作表名稱，例如 `"2023-12月"`。
+
+#### 2. **使用生成的 `SheetName`**：
+
+將生成的 `SheetName` 用於 `Excel Application Scope` 來讀取對應的工作表數據。
+
+```plaintext
+Excel Application Scope
+  Path: "你的Excel檔案路徑"
+  Body:
+    Read Range
+      SheetName: SheetName
+      Range: "C6:AF6"
+      Output: DataTable_C6ToAF6
+```
+
+### 總結：
+1. **判斷每月1號**：如果當前是每月的1號，則將 `MonthForSheet` 設置為上個月。
+2. **特殊處理1月1日**：如果是1月1日，則需要將年份減1，並將月份設置為12月。
+3. **生成正確的 `SheetName`**：根據年份和月份生成工作表名稱，並在 `Excel Application Scope` 中使用它來讀取數據。
+
+這樣，你的工作流程可以正確處理每個月1號的特殊情況，並根據前一個月份來選擇對應的工作表。
+
 要將 Excel 檔案中 `C6:AF6` 的數據複製到另一個 Excel 檔案中，可以按照以下步驟進行。在這個過程中，你會使用 UniPath 來讀取第一個 Excel 的數據，並將其寫入到另一個 Excel 中。
 
 ### 具體步驟：
