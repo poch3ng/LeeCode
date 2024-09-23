@@ -1,3 +1,77 @@
+要將 Excel 檔案中 `C6:AF6` 的數據複製到另一個 Excel 檔案中，可以按照以下步驟進行。在這個過程中，你會使用 UniPath 來讀取第一個 Excel 的數據，並將其寫入到另一個 Excel 中。
+
+### 具體步驟：
+
+#### 1. **讀取來源 Excel 的數據**
+   先使用 `Excel Application Scope` 和 `Read Range` 活動來讀取來源 Excel 中 `C6:AF6` 的範圍。
+
+#### 2. **寫入目標 Excel**
+   再次使用 `Excel Application Scope`，並使用 `Write Range` 活動將讀取的數據寫入到目標 Excel 的指定範圍。
+
+### 實作步驟：
+
+#### 1. **讀取來源 Excel 檔案中的數據**
+
+1. **Excel Application Scope**（打開來源檔案）：
+   - 使用 `Excel Application Scope` 活動來打開來源 Excel 檔案。
+   - **Path**：設置來源 Excel 檔案的路徑。
+
+2. **Read Range**（讀取範圍 C6:AF6）：
+   - 在 `Excel Application Scope` 中，使用 `Read Range` 活動來讀取範圍。
+   - **SheetName**：設置來源 Excel 的工作表名稱（例如 `"Sheet1"`）。
+   - **Range**：設置範圍為 `"C6:AF6"`。
+   - **Output**：設置為變數 `SourceDataTable`。
+
+#### 2. **寫入目標 Excel 檔案中的數據**
+
+1. **Excel Application Scope**（打開目標檔案）：
+   - 使用另一個 `Excel Application Scope` 活動來打開目標 Excel 檔案。
+   - **Path**：設置目標 Excel 檔案的路徑。
+
+2. **Write Range**（寫入數據到目標範圍）：
+   - 在 `Excel Application Scope` 中，使用 `Write Range` 活動。
+   - **SheetName**：設置目標 Excel 的工作表名稱（例如 `"Sheet1"`）。
+   - **Range**：設置為你要貼上數據的範圍（例如 `"C6"` 或其他你想貼上的位置）。
+   - **Input**：將 `SourceDataTable` 作為輸入。
+
+### 流程範例：
+
+1. **讀取來源 Excel 檔案的數據**：
+   ```plaintext
+   Excel Application Scope
+     Path: "C:\SourceFolder\SourceFile.xlsx"
+     Body:
+       Read Range
+         SheetName: "Sheet1"
+         Range: "C6:AF6"
+         Output: SourceDataTable
+   ```
+
+2. **寫入數據到目標 Excel 檔案**：
+   ```plaintext
+   Excel Application Scope
+     Path: "C:\TargetFolder\TargetFile.xlsx"
+     Body:
+       Write Range
+         SheetName: "Sheet1"
+         Range: "C6"
+         Input: SourceDataTable
+   ```
+
+### 詳細解釋：
+
+1. **讀取來源數據**：
+   - `Read Range` 會從來源 Excel 的 C6 到 AF6 讀取一行數據，並將其存入 `SourceDataTable` 中。
+
+2. **寫入到目標 Excel**：
+   - `Write Range` 會將 `SourceDataTable` 中的數據貼到目標 Excel 中你指定的範圍（例如 C6）。
+
+### 總結：
+1. 使用 `Excel Application Scope` 和 `Read Range` 讀取來源 Excel 的數據。
+2. 使用 `Excel Application Scope` 和 `Write Range` 將數據寫入到目標 Excel 檔案的指定位置。
+
+這樣，你就可以成功將來源 Excel 中的 `C6:AF6` 的數據複製並貼到另一個 Excel 檔案中。
+
 若要在 UniPath 中從 Excel 檔案中讀取範圍 C6 到 C 列的最後一個有數據的行（假設是 AF 行），你可以按照以下步驟來實作。
 
 ### 具體步驟：
