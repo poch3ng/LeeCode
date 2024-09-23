@@ -1,3 +1,82 @@
+在 UniPath 中，直接從 Excel 中截取選取的範圍目前並非內建的功能，但你可以通過一些方法來達成這個目的，主要依靠 `Send Hotkey` 和一些 VBA 腳本來幫助你截取 Excel 的選取範圍，並將其另存為圖片。
+
+### 解決方案：
+你可以使用 Excel 的 VBA 腳本來將選取的範圍匯出為圖片，然後在 UniPath 中執行這個 VBA 腳本。
+
+### 具體步驟：
+
+#### 1. **在 Excel 中使用 VBA 腳本將選取範圍儲存為圖片**
+
+首先，你可以使用以下的 VBA 腳本來將選取的範圍保存為圖片：
+
+```vba
+Sub SaveRangeAsImage()
+    Dim rng As Range
+    Dim filePath As String
+    
+    ' 設定圖片保存的檔案路徑
+    filePath = "C:\YourFolder\SelectedRange.png"
+    
+    ' 設定要擷取的範圍
+    Set rng = Selection
+    
+    ' 將選取範圍複製為圖片
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    
+    ' 建立一個圖表對象來保存圖片
+    Dim chartObj As ChartObject
+    Set chartObj = ActiveSheet.ChartObjects.Add(Left:=rng.Left, Top:=rng.Top, Width:=rng.Width, Height:=rng.Height)
+    chartObj.Chart.Paste
+    
+    ' 將圖表匯出為圖片
+    chartObj.Chart.Export filePath
+    
+    ' 刪除臨時的圖表對象
+    chartObj.Delete
+End Sub
+```
+
+這個 VBA 腳本會將選取的範圍另存為圖片並保存到指定路徑，例如 `"C:\YourFolder\SelectedRange.png"`。
+
+#### 2. **在 UniPath 中執行 VBA 腳本**
+
+1. **使用 Excel Application Scope 打開 Excel 檔案**。
+2. **選擇範圍**：用 `Select Range` 活動選擇你要擷取的範圍，例如 `C6:AF6`。
+3. **使用 Execute Macro 執行 VBA 腳本**：
+   - 使用 `Invoke VBA` 活動來執行前面定義的 `SaveRangeAsImage` 宏，將選取範圍保存為圖片。
+
+### 實作流程範例：
+
+1. **打開 Excel 檔案並選擇範圍**：
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourExcelFile.xlsx"
+  Body:
+    Select Range
+      SheetName: "Sheet1"
+      Range: "C6:AF6"
+```
+
+2. **使用 `Invoke VBA` 來執行宏**：
+
+```plaintext
+Invoke VBA
+  CodeFilePath: "C:\YourFolder\SaveRangeAsImage.vbs"  ' VBA 腳本檔案路徑
+```
+
+3. **檢查圖片**：
+   VBA 腳本執行後，Excel 選取範圍會被保存為圖片，你可以使用 `Take Screenshot` 活動來進行後續操作（如果需要）。
+
+### 總結：
+
+1. **使用 VBA 腳本** 將選取範圍匯出為圖片。
+2. **在 UniPath 中執行 VBA 腳本**，例如透過 `Invoke VBA` 或直接執行 Excel 宏。
+3. 圖片會被保存到你指定的路徑，然後你可以使用它進行後續處理或顯示。
+
+這樣可以有效地解決直接從 Excel 擷取特定範圍為圖片的問題。
+
+
 了解了，若你希望每個月的 **1 號** 都被視為上個月的話，這樣的邏輯可以應用到所有月份的情況。也就是說，如果是 **10 月 1 號**，它應被視為 **9 月**；如果是 **11 月 1 號**，它應被視為 **10 月**，以此類推。
 
 ### 更新邏輯：
