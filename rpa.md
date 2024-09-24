@@ -1,3 +1,84 @@
+在 UniPath 中，你可以使用 `Excel Application Scope` 來打開兩個 Excel 檔案 (`a.xlsx` 和 `b.xlsx`)，並將 `a.xlsx` 的特定範圍（如 `C6:AF6`、`C8:AF8` 和 `C11:AF11`）複製到 `b.xlsx` 的指定位置（如 `D4`、`D10` 和 `D3`）。這需要通過讀取範圍並寫入到另一個 Excel 檔案來實現。
+
+### 具體步驟：
+
+#### 1. **打開 `a.xlsx` 並讀取範圍**
+- 使用 `Read Range` 活動來讀取範圍 `C6:AF6`、`C8:AF8` 和 `C11:AF11`。
+
+#### 2. **打開 `b.xlsx` 並寫入範圍**
+- 使用 `Write Range` 活動將讀取的數據寫入 `b.xlsx` 的指定範圍 `D4`、`D10` 和 `D3`。
+
+### 完整流程：
+
+#### 1. **讀取 `a.xlsx` 中的範圍**
+
+- 在 UniPath 中，使用 `Excel Application Scope` 打開 `a.xlsx` 並讀取特定範圍。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "Sheet1"
+      Range: "C6:AF6"
+      Output: DataTable_C6_AF6
+
+    Read Range
+      SheetName: "Sheet1"
+      Range: "C8:AF8"
+      Output: DataTable_C8_AF8
+
+    Read Range
+      SheetName: "Sheet1"
+      Range: "C11:AF11"
+      Output: DataTable_C11_AF11
+```
+
+#### 2. **寫入數據到 `b.xlsx`**
+
+- 接下來，使用另一個 `Excel Application Scope` 打開 `b.xlsx` 並將數據寫入到對應的範圍。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\b.xlsx"
+  Body:
+    Write Range
+      SheetName: "Sheet1"
+      Range: "D4"
+      Input: DataTable_C6_AF6
+
+    Write Range
+      SheetName: "Sheet1"
+      Range: "D10"
+      Input: DataTable_C8_AF8
+
+    Write Range
+      SheetName: "Sheet1"
+      Range: "D3"
+      Input: DataTable_C11_AF11
+```
+
+### 詳細步驟解釋：
+
+1. **讀取範圍**：
+   - 使用 `Read Range` 活動讀取 `a.xlsx` 的指定範圍（如 `C6:AF6`、`C8:AF8` 和 `C11:AF11`）。
+   - 每個範圍的結果將存儲在不同的 `DataTable` 變數中（如 `DataTable_C6_AF6`、`DataTable_C8_AF8` 和 `DataTable_C11_AF11`）。
+
+2. **寫入範圍**：
+   - 使用 `Write Range` 活動將這些 `DataTable` 變數寫入 `b.xlsx` 的指定位置。
+   - 分別將數據寫入到 `D4`、`D10` 和 `D3`。
+
+3. **Excel Application Scope**：
+   - 分別用兩個 `Excel Application Scope` 活動來處理兩個 Excel 檔案，一個用於讀取 `a.xlsx`，另一個用於寫入 `b.xlsx`。
+
+### 總結：
+
+- 使用 `Read Range` 從 `a.xlsx` 讀取數據，並將其存儲在 `DataTable` 中。
+- 使用 `Write Range` 將讀取的數據寫入 `b.xlsx` 的指定位置。
+- 在 UniPath 中，你可以通過這種方式實現跨文件的數據轉移。
+
+這樣，你就能自動將 `a.xlsx` 中的數據範圍複製到 `b.xlsx` 中指定的位置。
+
 在 UniPath 中，`Assign` 活動不能直接執行多行程式碼邏輯，像是 `If` 和 `For` 這樣的結構必須通過不同的活動來實現。不過，我們可以通過 `If` 活動來實現同樣的邏輯判斷。
 
 ### 實作步驟：
