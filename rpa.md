@@ -1,3 +1,67 @@
+在 UniPath 中，`Assign` 活動不能直接執行多行程式碼邏輯，像是 `If` 和 `For` 這樣的結構必須通過不同的活動來實現。不過，我們可以通過 `If` 活動來實現同樣的邏輯判斷。
+
+### 實作步驟：
+
+#### 1. **宣告變數**
+   - `YearForSheet`: 儲存年份。
+   - `MonthForSheet`: 儲存月份。
+   - `SheetName`: 儲存工作表名稱。
+
+#### 2. **使用 `Assign` 活動設置基礎值**
+
+1. **Assign 活動**：
+   - `YearForSheet = Now.Year.ToString()`
+   - `MonthForSheet = Now.Month`
+
+#### 3. **使用 `If` 活動來實現每月 1 號的邏輯**
+
+1. **If 活動判斷是否為每月 1 號**：
+   - 條件：`Now.Day = 1`
+   
+2. **If 活動內部：處理每月 1 號的邏輯**：
+   - **Assign 活動**：將 `MonthForSheet` 設為上個月：
+     - `MonthForSheet = MonthForSheet - 1`
+   
+   - **特殊處理 1 月 1 號**：再用一個 `If` 活動判斷：
+     - 條件：`MonthForSheet = 0`
+     - **Assign 活動**：
+       - `YearForSheet = (Now.Year - 1).ToString()`
+       - `MonthForSheet = 12`
+
+#### 4. **生成工作表名稱**
+
+1. **Assign 活動**：
+   - `SheetName = YearForSheet + "-" + MonthForSheet.ToString() + "月"`
+
+### 完整流程範例：
+
+1. **Assign 初始值**：
+   - `YearForSheet = Now.Year.ToString()`
+   - `MonthForSheet = Now.Month`
+
+2. **If 活動：判斷是否為每月 1 號**：
+   - 條件：`Now.Day = 1`
+   - **If True**：
+     1. **Assign 活動**：`MonthForSheet = MonthForSheet - 1`
+     2. **If 活動：判斷是否為 1 月 1 號**：
+        - 條件：`MonthForSheet = 0`
+        - **If True**：
+          - `YearForSheet = (Now.Year - 1).ToString()`
+          - `MonthForSheet = 12`
+
+3. **Assign 工作表名稱**：
+   - `SheetName = YearForSheet + "-" + MonthForSheet.ToString() + "月"`
+
+#### 使用 `SheetName`：
+將生成的 `SheetName` 用於 `Excel Application Scope` 中的 `Read Range`，這樣就可以動態選擇正確的工作表。
+
+### 總結：
+1. 使用 `Assign` 和 `If` 活動來模擬條件邏輯。
+2. 判斷每月 1 號是否應使用上個月份，並在 1 月 1 號時處理年份和月份的特殊情況。
+3. 使用生成的 `SheetName` 來讀取正確的 Excel 工作表。
+
+這樣就能在 UniPath 中實現根據當前月份動態選擇工作表的邏輯。
+
 為了確保 `A` 欄的合併儲存格不被自動換色或修改，你可以在 VBA 腳本中對 `A` 欄進行排除處理，這樣 `A` 欄的合併儲存格就不會被應用交替顏色的樣式。
 
 ### 修改後的 VBA 腳本：
