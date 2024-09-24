@@ -1,3 +1,106 @@
+要將 Excel 中的圖表複製到 PowerPoint 中，你可以使用 UniPath 與 PowerPoint 活動來實現。具體步驟包括：
+
+1. **在 Excel 中複製圖表**：首先，從 Excel 中提取圖表並複製。
+2. **打開 PowerPoint 並粘貼圖表**：接著在 PowerPoint 中打開指定的幻燈片，並將圖表粘貼進去。
+
+### 具體實現步驟：
+
+#### 1. **從 Excel 中複製圖表**
+
+你可以使用 Excel 的 VBA 腳本來複製圖表，然後使用 UniPath 執行這段 VBA 來完成操作。
+
+#### VBA 腳本（複製圖表到剪貼板）：
+
+```vba
+Sub CopyChartToClipboard()
+    ' 獲取圖表對象，這裡假設圖表的名稱是 "Chart 1"
+    Dim chartObj As ChartObject
+    Set chartObj = ActiveSheet.ChartObjects("Chart 1")
+    
+    ' 複製圖表到剪貼板
+    chartObj.Chart.Copy
+End Sub
+```
+
+#### 2. **在 UniPath 中執行 VBA 腳本**
+
+1. 使用 `Excel Application Scope` 打開 Excel 檔案。
+2. 使用 `Invoke VBA` 執行上述 VBA 腳本，將圖表複製到剪貼板。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Invoke VBA
+      CodeFilePath: "C:\YourFolder\CopyChartToClipboard.vbs"
+```
+
+#### 3. **打開 PowerPoint 並粘貼圖表**
+
+接著，在 UniPath 中使用 PowerPoint 活動來打開 PowerPoint，並將複製的圖表粘貼到指定的幻燈片中。
+
+### 使用 PowerPoint 活動粘貼圖表
+
+1. **打開 PowerPoint 檔案**：
+   - 使用 `PowerPoint Application Scope` 活動來打開目標 PowerPoint 檔案。
+
+```plaintext
+PowerPoint Application Scope
+  FilePath: "C:\YourFolder\presentation.pptx"
+  Body:
+    Use PowerPoint Presentation
+      Add Slide
+        SlideIndex: 1
+        Layout: ppLayoutText
+      Paste Clipboard
+```
+
+2. **粘貼圖表到幻燈片**：
+   - 在 `PowerPoint Application Scope` 中，使用 `Paste Clipboard` 活動將 Excel 中的圖表粘貼到 PowerPoint 的當前幻燈片中。
+
+```plaintext
+PowerPoint Application Scope
+  FilePath: "C:\YourFolder\presentation.pptx"
+  Body:
+    Paste Clipboard
+```
+
+### 完整流程：
+
+1. **從 Excel 中複製圖表**：
+   - 使用 `Excel Application Scope` 打開 `a.xlsx`，並使用 `Invoke VBA` 執行 VBA 腳本來將圖表複製到剪貼板。
+
+2. **打開 PowerPoint 並粘貼圖表**：
+   - 使用 `PowerPoint Application Scope` 打開 `presentation.pptx`。
+   - 使用 `Paste Clipboard` 活動將剪貼板中的圖表粘貼到指定的幻燈片中。
+
+### 在 UniPath 中的完整範例：
+
+```plaintext
+1. Excel Application Scope
+   Path: "C:\YourFolder\a.xlsx"
+   Body:
+     Invoke VBA
+       CodeFilePath: "C:\YourFolder\CopyChartToClipboard.vbs"
+
+2. PowerPoint Application Scope
+   FilePath: "C:\YourFolder\presentation.pptx"
+   Body:
+     Use PowerPoint Presentation
+       Add Slide
+         SlideIndex: 1
+         Layout: ppLayoutText
+       Paste Clipboard
+```
+
+### 總結：
+
+- **Step 1**：使用 VBA 腳本將 Excel 中的圖表複製到剪貼板。
+- **Step 2**：使用 PowerPoint 活動將 Excel 中的圖表粘貼到 PowerPoint 幻燈片中。
+- **Step 3**：通過 UniPath 自動化執行這一過程。
+
+這樣，你就可以自動從 Excel 中複製圖表並將其粘貼到 PowerPoint 中的幻燈片，實現跨應用的自動化操作。
+
 在 UniPath 中，你可以使用 `Excel Application Scope` 來打開兩個 Excel 檔案 (`a.xlsx` 和 `b.xlsx`)，並將 `a.xlsx` 的特定範圍（如 `C6:AF6`、`C8:AF8` 和 `C11:AF11`）複製到 `b.xlsx` 的指定位置（如 `D4`、`D10` 和 `D3`）。這需要通過讀取範圍並寫入到另一個 Excel 檔案來實現。
 
 ### 具體步驟：
