@@ -1,3 +1,155 @@
+為了確保 `A` 欄的合併儲存格不被自動換色或修改，你可以在 VBA 腳本中對 `A` 欄進行排除處理，這樣 `A` 欄的合併儲存格就不會被應用交替顏色的樣式。
+
+### 修改後的 VBA 腳本：
+
+```vba
+Sub BeautifyAndSaveRangeAsImage()
+    Dim rng As Range
+    Dim row As Range
+    Dim cell As Range
+    Dim filePath As String
+    Dim ws As Worksheet
+    Dim chartObj As ChartObject
+    Dim i As Long
+
+    ' 設定圖片保存的檔案路徑
+    filePath = "C:\YourFolder\SelectedRange.png"
+    
+    ' 設定要擷取的範圍
+    Set ws = ActiveSheet
+    Set rng = ws.Range("A6:AF6") ' 這裡指定你要美化和截圖的範圍
+
+    ' ======= 美化開始 =======
+
+    ' 設定標題背景色為深灰色 (第一行的背景色)
+    With rng.Rows(1).Interior
+        .Color = RGB(96, 96, 96) ' 深灰色背景
+    End With
+    
+    ' 設定標題字體為微軟正黑體，白色字體
+    With rng.Rows(1).Font
+        .Name = "Microsoft JhengHei" ' 微軟正黑體
+        .Size = 12
+        .Bold = True
+        .Color = RGB(255, 255, 255) ' 白色字體
+    End With
+
+    ' 設定每一行背景顏色交替（從第二行開始），排除A欄
+    For i = 2 To rng.Rows.Count
+        Set row = rng.Rows(i)
+        
+        ' 迴圈處理除A欄外的其他欄位
+        For Each cell In row.Cells
+            If cell.Column > 1 Then ' 排除A欄 (Column 1)
+                If i Mod 2 = 0 Then
+                    ' 偶數行背景設為淺灰色
+                    cell.Interior.Color = RGB(242, 242, 242) ' 淺灰色
+                Else
+                    ' 奇數行背景設為白色
+                    cell.Interior.Color = RGB(255, 255, 255) ' 白色
+                End If
+
+                ' 設定字體
+                With cell.Font
+                    .Name = "Microsoft JhengHei" ' 微軟正黑體
+                    .Size = 12
+                    .Bold = False
+                    .Color = RGB(0, 0, 0) ' 黑色字體
+                End With
+            End If
+        Next cell
+    Next i
+
+    ' 自動調整選取範圍的列寬和行高
+    rng.Columns.AutoFit
+    rng.Rows.AutoFit
+    
+    ' 強制刷新以應用格式
+    DoEvents
+    Application.Wait Now + TimeValue("00:00:01") ' 等待1秒，確保美化操作應用
+
+    ' 設定邊框
+    With rng.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlInsideVertical)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    
+    ' ======= 美化結束 =======
+
+    ' 將選取範圍複製為圖片
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    
+    ' 建立一個臨時的圖表對象來保存圖片（圖表是空白的，只用來匯出圖片）
+    Set chartObj = ws.ChartObjects.Add(Left:=rng.Left, Top:=rng.Top, Width:=rng.Width, Height:=rng.Height)
+    
+    ' 將圖片貼到圖表
+    chartObj.Chart.Paste
+    
+    ' 等待 Excel 完成粘貼並刷新
+    DoEvents
+    Application.Wait Now + TimeValue("00:00:01")
+    
+    ' 將圖表匯出為圖片檔案
+    chartObj.Chart.Export filePath
+    
+    ' 刪除臨時的圖表對象
+    chartObj.Delete
+End Sub
+```
+
+### 修改說明：
+
+1. **排除 A 欄的顏色變更**：
+   - 在 `For Each cell In row.Cells` 迴圈中，我們使用 `If cell.Column > 1`，這樣可以跳過 `A` 欄（即 `Column 1`），確保 `A` 欄的合併儲存格不會被改變背景顏色或字體樣式。
+   
+2. **僅變更其他欄位**：
+   - 只對 `B` 欄及以後的欄位應用背景顏色交替、字體等格式變更，`A` 欄保持原始樣式，不會受到影響。
+
+3. **列寬和行高調整**：
+   - 仍然會對所有列和行進行自動調整，但 `A` 欄的顏色和格式不會改變。
+
+### 如何使用：
+
+1. **執行 VBA 腳本**：
+   - 將這個 VBA 腳本嵌入到 Excel 檔案的 `VBA Editor` 中，然後運行該腳本，或在 UniPath 中通過 `Invoke VBA` 或 `Execute Macro` 活動來執行這個腳本。
+
+2. **截圖保存**：
+   - 腳本運行後，表格將被美化並保存為圖片，保存路徑為 `C:\YourFolder\SelectedRange.png`。
+
+### 總結：
+
+- `A` 欄的合併儲存格不會被應用換色邏輯，其他欄位仍然會根據奇偶行進行白色和淺灰色的交替背景設置。
+- 字體和其他樣式將應用於 `A` 欄以外的區域，並且表格會進行美化和自動調整。
+- 最終結果會被截圖保存到指定路徑。
+
+這樣你就可以保持 `A` 欄不受影響，並對其他部分進行美化處理，生成符合需求的圖片。
+
 要實現你所描述的效果，我們可以進一步修改 VBA 腳本，使標題的背景顏色為深灰，且內容行的背景顏色交替顯示白色和淺灰色，並將字體設置為「微軟正黑體」。以下是實現這些需求的完整 VBA 腳本：
 
 ### 完整 VBA 腳本（美化 Excel 表格並截圖）
