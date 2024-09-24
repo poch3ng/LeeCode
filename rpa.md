@@ -1,3 +1,154 @@
+要實現你所描述的效果，我們可以進一步修改 VBA 腳本，使標題的背景顏色為深灰，且內容行的背景顏色交替顯示白色和淺灰色，並將字體設置為「微軟正黑體」。以下是實現這些需求的完整 VBA 腳本：
+
+### 完整 VBA 腳本（美化 Excel 表格並截圖）
+
+```vba
+Sub BeautifyAndSaveRangeAsImage()
+    Dim rng As Range
+    Dim row As Range
+    Dim filePath As String
+    Dim ws As Worksheet
+    Dim chartObj As ChartObject
+    Dim i As Long
+
+    ' 設定圖片保存的檔案路徑
+    filePath = "C:\YourFolder\SelectedRange.png"
+    
+    ' 設定要擷取的範圍
+    Set ws = ActiveSheet
+    Set rng = ws.Range("C6:AF6") ' 這裡指定你要美化和截圖的範圍
+
+    ' ======= 美化開始 =======
+
+    ' 設定標題背景色為深灰色 (第一行的背景色)
+    With rng.Rows(1).Interior
+        .Color = RGB(96, 96, 96) ' 深灰色背景
+    End With
+    
+    ' 設定標題字體為微軟正黑體，白色字體
+    With rng.Rows(1).Font
+        .Name = "Microsoft JhengHei" ' 微軟正黑體
+        .Size = 12
+        .Bold = True
+        .Color = RGB(255, 255, 255) ' 白色字體
+    End With
+
+    ' 設定每一行背景顏色交替（從第二行開始）
+    For i = 2 To rng.Rows.Count
+        Set row = rng.Rows(i)
+        If i Mod 2 = 0 Then
+            ' 偶數行背景設為淺灰色
+            row.Interior.Color = RGB(242, 242, 242) ' 淺灰色
+        Else
+            ' 奇數行背景設為白色
+            row.Interior.Color = RGB(255, 255, 255) ' 白色
+        End If
+        
+        ' 設定內容行的字體為微軟正黑體
+        With row.Font
+            .Name = "Microsoft JhengHei" ' 微軟正黑體
+            .Size = 12
+            .Bold = False
+            .Color = RGB(0, 0, 0) ' 黑色字體
+        End With
+    Next i
+
+    ' 自動調整選取範圍的列寬和行高
+    rng.Columns.AutoFit
+    rng.Rows.AutoFit
+    
+    ' 強制刷新以應用格式
+    DoEvents
+    Application.Wait Now + TimeValue("00:00:01") ' 等待1秒，確保美化操作應用
+
+    ' 設定邊框
+    With rng.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    With rng.Borders(xlInsideVertical)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = 0
+    End With
+    
+    ' ======= 美化結束 =======
+
+    ' 將選取範圍複製為圖片
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    
+    ' 建立一個臨時的圖表對象來保存圖片（圖表是空白的，只用來匯出圖片）
+    Set chartObj = ws.ChartObjects.Add(Left:=rng.Left, Top:=rng.Top, Width:=rng.Width, Height:=rng.Height)
+    
+    ' 將圖片貼到圖表
+    chartObj.Chart.Paste
+    
+    ' 等待 Excel 完成粘貼並刷新
+    DoEvents
+    Application.Wait Now + TimeValue("00:00:01")
+    
+    ' 將圖表匯出為圖片檔案
+    chartObj.Chart.Export filePath
+    
+    ' 刪除臨時的圖表對象
+    chartObj.Delete
+End Sub
+```
+
+### 主要步驟說明：
+
+1. **標題美化**：
+   - **背景色**：將第一行的背景設為深灰色 (`RGB(96, 96, 96)`)，字體設置為白色，並使用「微軟正黑體」字體。
+   - **字體樣式**：標題字體大小為 12，並且加粗。
+
+2. **內容行背景色交替**：
+   - 奇數行的背景色為白色，偶數行的背景色為淺灰色 (`RGB(242, 242, 242)`)，內容字體同樣設置為「微軟正黑體」，字體顏色為黑色。
+
+3. **自動調整列寬和行高**：
+   - 使用 `AutoFit` 來自動調整儲存格的列寬和行高，保證數據能夠完整顯示。
+
+4. **邊框設定**：
+   - 在表格的內部和外部加上細邊框，使表格看起來更加清晰和專業。
+
+5. **強制刷新**：
+   - 使用 `DoEvents` 和 `Application.Wait` 確保所有的格式設置被應用後，再進行截圖操作。
+
+### 如何使用：
+
+1. **執行 VBA 腳本**：
+   - 將這個 VBA 腳本嵌入到 Excel 檔案的 `VBA Editor` 中（按 `Alt + F11`），然後運行該腳本，或在 UniPath 中通過 `Invoke VBA` 或 `Execute Macro` 活動來執行這個腳本。
+
+2. **截圖保存**：
+   - 運行腳本後，表格會被美化並且保存為一個圖片檔案，圖片會保存在 `C:\YourFolder\SelectedRange.png`。
+
+### 總結：
+
+- **標題深灰色**、**內容行白色和淺灰色交替**、**微軟正黑體**字體等格式被應用到選定範圍，並確保表格美化後進行截圖。
+- 這個 VBA 腳本不僅能自動美化 Excel 表格，還可以將表格保存為圖片，適用於報告生成和自動化任務。
+
+運行這個 VBA 腳本後，你將得到一個美化後的表格圖片，達到專業且美觀的效果。
+
 如果截圖成功但格子太小，導致 Excel 中的數值無法完整顯示，你可以通過以下方法來解決這個問題：
 
 ### 解決方案：
