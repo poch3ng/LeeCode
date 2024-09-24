@@ -1,3 +1,150 @@
+如果截圖成功但格子太小，導致 Excel 中的數值無法完整顯示，你可以通過以下方法來解決這個問題：
+
+### 解決方案：
+
+#### 1. **自動調整列寬和行高**
+你可以在進行截圖之前，自動調整 Excel 儲存格的列寬和行高，使得所有的數值都能被完整顯示。這可以通過 VBA 腳本來實現。
+
+#### VBA 腳本示例：
+你可以在截圖之前，使用 `AutoFit` 方法來自動調整列寬和行高，然後再進行截圖。
+
+```vba
+Sub SaveRangeAsImage()
+    Dim rng As Range
+    Dim filePath As String
+    Dim ws As Worksheet
+    Dim chartObj As ChartObject
+    
+    ' 設定圖片保存的檔案路徑
+    filePath = "C:\YourFolder\SelectedRange.png"
+    
+    ' 設定要擷取的範圍
+    Set ws = ActiveSheet
+    Set rng = ws.Range("C6:AF6") ' 這裡指定你要保存的範圍
+    
+    ' 自動調整選取範圍的列寬和行高
+    rng.Columns.AutoFit
+    rng.Rows.AutoFit
+
+    ' 將選取範圍複製為圖片
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    
+    ' 建立一個臨時的圖表對象來保存圖片（圖表是空白的，只用來匯出圖片）
+    Set chartObj = ws.ChartObjects.Add(Left:=rng.Left, Top:=rng.Top, Width:=rng.Width, Height:=rng.Height)
+    
+    ' 將圖片貼到圖表
+    chartObj.Chart.Paste
+    
+    ' 將圖表匯出為圖片檔案
+    chartObj.Chart.Export filePath
+    
+    ' 刪除臨時的圖表對象
+    chartObj.Delete
+End Sub
+```
+
+#### 2. **手動設置最小列寬和行高**
+如果自動調整後仍然不滿足需求，你也可以手動設置每個列的寬度和行的高度，這樣可以確保數值顯示足夠清晰。
+
+#### 增加手動列寬和行高的 VBA 腳本：
+```vba
+Sub SaveRangeAsImage()
+    Dim rng As Range
+    Dim filePath As String
+    Dim ws As Worksheet
+    Dim chartObj As ChartObject
+    
+    ' 設定圖片保存的檔案路徑
+    filePath = "C:\YourFolder\SelectedRange.png"
+    
+    ' 設定要擷取的範圍
+    Set ws = ActiveSheet
+    Set rng = ws.Range("C6:AF6") ' 這裡指定你要保存的範圍
+    
+    ' 手動調整列寬和行高
+    rng.ColumnWidth = 15 ' 設置列寬
+    rng.RowHeight = 20 ' 設置行高
+
+    ' 將選取範圍複製為圖片
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    
+    ' 建立一個臨時的圖表對象來保存圖片（圖表是空白的，只用來匯出圖片）
+    Set chartObj = ws.ChartObjects.Add(Left:=rng.Left, Top:=rng.Top, Width:=rng.Width, Height:=rng.Height)
+    
+    ' 將圖片貼到圖表
+    chartObj.Chart.Paste
+    
+    ' 將圖表匯出為圖片檔案
+    chartObj.Chart.Export filePath
+    
+    ' 刪除臨時的圖表對象
+    chartObj.Delete
+End Sub
+```
+
+### 解釋：
+1. **`rng.Columns.AutoFit` 和 `rng.Rows.AutoFit`**：
+   - 自動調整列寬和行高，保證儲存格的內容能夠完全顯示。
+   
+2. **手動設置 `ColumnWidth` 和 `RowHeight`**：
+   - 如果你知道某些儲存格的數值可能特別長，可以手動設置適當的列寬和行高。
+   
+3. **匯出為圖片**：
+   - 這部分與之前相同，將調整好的範圍匯出為圖片。
+
+### 3. **使用 Zoom 調整**
+除了調整列寬和行高，你還可以改變 Excel 的 Zoom 比例來增加顯示範圍，然後截圖。這樣可以保證數值不會被裁剪。
+
+```vba
+Sub SaveRangeAsImageWithZoom()
+    Dim rng As Range
+    Dim filePath As String
+    Dim ws As Worksheet
+    Dim chartObj As ChartObject
+    
+    ' 設定圖片保存的檔案路徑
+    filePath = "C:\YourFolder\SelectedRange.png"
+    
+    ' 設定要擷取的範圍
+    Set ws = ActiveSheet
+    Set rng = ws.Range("C6:AF6") ' 這裡指定你要保存的範圍
+    
+    ' 自動調整選取範圍的列寬和行高
+    rng.Columns.AutoFit
+    rng.Rows.AutoFit
+    
+    ' 調整頁面縮放比例
+    ws.Parent.Windows(1).Zoom = 80 ' 80% 縮放
+    
+    ' 將選取範圍複製為圖片
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    
+    ' 建立一個臨時的圖表對象來保存圖片（圖表是空白的，只用來匯出圖片）
+    Set chartObj = ws.ChartObjects.Add(Left:=rng.Left, Top:=rng.Top, Width:=rng.Width, Height:=rng.Height)
+    
+    ' 將圖片貼到圖表
+    chartObj.Chart.Paste
+    
+    ' 將圖表匯出為圖片檔案
+    chartObj.Chart.Export filePath
+    
+    ' 刪除臨時的圖表對象
+    chartObj.Delete
+End Sub
+```
+
+### 4. **檢查單元格內容的格式化**
+確保 Excel 中的單元格內容沒有被隱藏或格式化為無法顯示的方式，例如文字過長或縮略。這可以通過自動調整來解決，但也可以手動檢查確保其顯示正確。
+
+### 總結：
+
+1. 使用 `AutoFit` 自動調整列寬和行高，保證所有數值都能顯示完整。
+2. 如果自動調整不滿足需求，可以手動設置適當的列寬和行高。
+3. 如果空間有限，也可以通過調整 Zoom 比例來增加顯示範圍。
+4. 測試 VBA 腳本，確保所有儲存格的數值都能正確顯示在圖片中。
+
+這樣你就能保證截圖的圖片既包含完整的表格數值，又能正常顯示所有內容。
+
 當你在 UniPath 中使用 VBA 截取 Excel 的選取範圍時，截圖結果為空白的原因通常是因為在複製圖片或將圖片粘貼到圖表時，圖表可能還沒有完全刷新或者 Excel 本身有一些渲染問題。
 
 ### 解決此問題的方法：
