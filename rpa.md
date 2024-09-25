@@ -1,3 +1,103 @@
+使用 `Invoke VBA` 時，UniPath 會將 VBA 腳本作為一段代碼注入到 Excel 中運行，而不是像 Excel 自帶的宏一樣存儲在 Excel 文件中。這與 Excel 本身的宏有些不同，因此可能會遇到你描述的無法直接執行的問題。
+
+為了解決這個問題，我們可以遵循以下步驟來確保 `Invoke VBA` 正常工作：
+
+### 1. **確認 `Invoke VBA` 的限制**
+`Invoke VBA` 不像 `Execute Macro` 可以直接執行嵌入 Excel 的宏，它必須將代碼作為腳本傳遞並動態執行，因此有一些限制：
+- **代碼必須是完整的 VBA 函數或子程序**。
+- **代碼不能引用 Excel 外部的依賴**（除非在代碼中直接定義）。
+
+### 2. **動態工作表的傳遞**
+
+如果你使用 `Invoke VBA`，而且希望動態傳遞工作表名稱，可以這樣進行操作：
+
+#### 更新的 VBA 腳本（支持動態傳遞工作表名稱）：
+
+```vba
+Sub CopyChartFromSpecificSheet(sheetName As String)
+    ' 切換到指定的工作表
+    Sheets(sheetName).Select
+    
+    ' 獲取圖表對象，假設圖表名稱為 "Chart 1"
+    Dim chartObj As ChartObject
+    Set chartObj = ActiveSheet.ChartObjects("Chart 1")
+    
+    ' 複製圖表到剪貼板
+    chartObj.Chart.Copy
+End Sub
+```
+
+這個腳本會動態接收工作表名稱作為參數。
+
+#### 在 UniPath 中傳遞 VBA 代碼和參數
+
+在 `Invoke VBA` 活動中，我們需要確保將代碼和參數正確傳遞。具體如下：
+
+1. **Excel Application Scope**：打開需要處理的 Excel 文件。
+
+2. **Invoke VBA 活動**：動態傳遞代碼和參數。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Invoke VBA
+      Code: "Sub CopyChartFromSpecificSheet(sheetName As String) Sheets(sheetName).Select Set chartObj = ActiveSheet.ChartObjects(""Chart 1"") chartObj.Chart.Copy End Sub"
+      Arguments: {sheetName}
+```
+
+### 3. **如何確保 Invoke VBA 正常執行**
+
+1. **檢查活頁簿格式**：首先，確保 Excel 文件為 `.xlsm` 格式。如果是 `.xlsx` 格式，Excel 無法執行宏。
+
+2. **完整的 VBA 腳本結構**：在 `Invoke VBA` 中必須保證代碼是完整的子程序（`Sub` 或 `Function`）。代碼需要從 Sub/Function 開始，並且代碼中的所有變數都需要在該代碼段中定義和使用。
+
+3. **調試 `Invoke VBA`**：如果 `Invoke VBA` 還是無法執行，嘗試以下調試方法：
+   - **簡化 VBA 腳本**：首先嘗試簡單的代碼，比如僅切換到某個工作表，看看代碼是否正確運行。這樣可以幫助定位問題。
+   - **檢查 Excel 設置**：確認 Excel 設置允許運行 VBA 代碼。
+   - **檢查工作表名稱是否正確**：確保 `sheetName` 參數正確傳遞到 VBA 腳本中，且該工作表確實存在。
+
+#### 調試用的簡單 VBA 代碼範例：
+
+```vba
+Sub TestSheetSwitch(sheetName As String)
+    ' 測試切換工作表
+    Sheets(sheetName).Select
+End Sub
+```
+
+將這段簡單的 VBA 代碼放入 `Invoke VBA` 中，並測試是否可以正確切換到指定的工作表。如果這段代碼成功執行，則可以確定問題不在 `Invoke VBA`，而是在後續的操作（如複製圖表等）。
+
+### 4. **進一步解決方案：使用 `Execute Macro`**
+
+如果你無法通過 `Invoke VBA` 正確執行代碼，另一種方法是將宏直接嵌入到 Excel 文件中，然後使用 UniPath 的 `Execute Macro` 活動來執行嵌入式宏。
+
+1. **嵌入宏到 Excel 文件**：
+   - 按 `Alt + F11` 進入 VBA 編輯器。
+   - 將你的 VBA 腳本放入 `Module` 中。
+
+2. **使用 UniPath 的 `Execute Macro` 執行宏**：
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsm"
+  Body:
+    Execute Macro
+      MacroName: "CopyChartFromSpecificSheet"
+      Parameters: {sheetName}  ' 傳遞工作表名稱參數
+```
+
+這樣可以直接調用嵌入的宏，而不依賴於 `Invoke VBA` 動態運行腳本。
+
+### 總結：
+
+1. **使用 `Invoke VBA` 時**，確保代碼是完整的 VBA 子程序，並且確認 Excel 文件是 `.xlsm` 格式。
+2. **動態傳遞參數**：在 UniPath 中使用 `Arguments` 傳遞動態參數，讓 VBA 腳本能夠正確執行。
+3. **嘗試使用簡單的代碼進行調試**，幫助定位問題。
+4. **考慮使用 `Execute Macro`**，將 VBA 宏直接嵌入到 Excel 文件中，然後通過 UniPath 執行嵌入的宏。
+
+這些步驟應該可以幫助你解決 `Invoke VBA` 不能直接執行的問題。如果 `Invoke VBA` 還是無法正常工作，則 `Execute Macro` 會是一個更穩定的解決方案。
+
 如果你希望 `YourSheetName` 可以動態輸入，你可以在 UniPath 中使用變數來存儲工作表名稱，並將其傳遞到 VBA 腳本中。在 UniPath 中，你可以通過 `Invoke VBA` 活動的參數來實現這一點。
 
 ### UniPath 中動態傳遞工作表名稱
