@@ -1,3 +1,106 @@
+如果你希望 `YourSheetName` 可以動態輸入，你可以在 UniPath 中使用變數來存儲工作表名稱，並將其傳遞到 VBA 腳本中。在 UniPath 中，你可以通過 `Invoke VBA` 活動的參數來實現這一點。
+
+### UniPath 中動態傳遞工作表名稱
+
+#### 步驟：
+1. **使用變數存儲動態工作表名稱**。
+2. **將變數作為參數傳遞給 VBA 腳本**，讓 VBA 腳本能夠根據這個動態參數選擇工作表。
+
+### 實現方式：
+
+#### 1. **宣告變數**：
+在 UniPath 中，首先創建一個變數來存儲工作表名稱。比如：
+- 變數名稱：`sheetName`
+- 類型：`String`
+- 值：根據你的需求動態設置（例如，通過讀取某個 Excel 或從 UI 獲取）。
+
+#### 2. **VBA 腳本更新：**
+
+我們將使用 `Invoke VBA` 的參數來接收工作表名稱。你可以將工作表名稱作為一個參數傳遞給 VBA 腳本。
+
+```vba
+Sub CopyChartFromSpecificSheet(sheetName As String)
+    ' 切換到指定的工作表
+    Sheets(sheetName).Select
+    
+    ' 獲取圖表對象，假設圖表名稱為 "Chart 1"
+    Dim chartObj As ChartObject
+    Set chartObj = ActiveSheet.ChartObjects("Chart 1")
+    
+    ' 複製圖表到剪貼板
+    chartObj.Chart.Copy
+End Sub
+```
+
+這個 VBA 腳本將根據傳入的 `sheetName` 參數切換到對應的工作表。
+
+#### 3. **在 UniPath 中傳遞變數到 VBA**：
+
+在 `Invoke VBA` 活動中，你可以傳遞 `sheetName` 變數到 VBA 腳本中。具體操作如下：
+
+1. **設定 VBA 參數**：
+   在 `Invoke VBA` 的參數中，你可以設置 `sheetName` 變數作為輸入參數。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Invoke VBA
+      CodeFilePath: "C:\YourFolder\CopyChartToClipboard.vbs"
+      Arguments: {sheetName}  ' 將 sheetName 作為參數傳遞
+```
+
+2. **完整流程：**
+   這裡的變數 `sheetName` 是動態設置的，並且在調用 VBA 時作為參數傳遞到 VBA 腳本中。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Invoke VBA
+      Code: "Sub CopyChartFromSpecificSheet(sheetName As String) Sheets(sheetName).Select Set chartObj = ActiveSheet.ChartObjects(""Chart 1"") chartObj.Chart.Copy End Sub"
+      Arguments: {sheetName}  ' 傳遞工作表名稱參數
+```
+
+### 4. **動態設置 `sheetName` 變數：**
+
+你可以根據業務需求動態設置 `sheetName` 的值，例如：
+- 通過 `Input Dialog` 活動讓使用者輸入工作表名稱。
+- 從 Excel 或其他系統中讀取動態工作表名稱，然後將其設置為 `sheetName` 的值。
+
+```plaintext
+Input Dialog
+  Title: "請輸入工作表名稱"
+  Label: "工作表名稱:"
+  Output: sheetName  ' 使用者輸入的值將存儲在這個變數中
+```
+
+這樣就能使工作表名稱是動態的，並將其傳遞給 VBA 腳本。
+
+### 5. **PowerPoint 中的圖表粘貼：**
+
+接著你可以按照前面的步驟，將 Excel 中的圖表粘貼到 PowerPoint 幻燈片中。
+
+```plaintext
+PowerPoint Application Scope
+  FilePath: "C:\YourFolder\presentation.pptx"
+  Body:
+    Use PowerPoint Presentation
+      Add Slide
+        SlideIndex: 1
+        Layout: ppLayoutText
+      Paste Clipboard
+```
+
+### 總結：
+
+- 你可以通過 UniPath 的變數和 `Invoke VBA` 活動動態傳遞工作表名稱。
+- VBA 腳本根據動態的工作表名稱來選擇工作表並複製圖表。
+- 你可以動態設置工作表名稱，無論是讓使用者輸入還是從其他來源讀取，這樣就可以靈活處理不同的工作表。
+- 最終，將圖表粘貼到 PowerPoint 中。
+
+這樣，你可以靈活地在 UniPath 中實現動態選擇工作表並完成圖表粘貼到 PowerPoint 的操作。
+
 要將 Excel 中的圖表複製到 PowerPoint 中，你可以使用 UniPath 與 PowerPoint 活動來實現。具體步驟包括：
 
 1. **在 Excel 中複製圖表**：首先，從 Excel 中提取圖表並複製。
