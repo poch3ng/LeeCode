@@ -1,3 +1,95 @@
+如果你的 Excel 中有當月份的所有日期，而你希望從當前日期找到「前一天」的日期，並獲取該日期下方的 3、4、5、6 行的數據，可以通過以下步驟來實現這個需求：
+
+### 實現思路：
+
+1. **定位到前一天的日期**：在 Excel 中找到當前日期的前一天所在的儲存格。
+2. **從該日期儲存格下方提取對應行的數據**。
+
+### 具體步驟：
+
+1. **讀取 Excel 並找出前一天的日期**。
+2. **從該日期所在的列，提取其下方的 3、4、5、6 行的數據**。
+
+### VBA 實現方案：
+
+你可以使用 VBA 腳本來實現這一需求。VBA 會在當前月份的日期範圍內找到「前一天」，並獲取日期下方的 3、4、5、6 行數據。
+
+#### VBA 代碼：
+
+```vba
+Sub GetPreviousDayData()
+    Dim ws As Worksheet
+    Dim currentDate As Date
+    Dim previousDate As Date
+    Dim cell As Range
+    Dim dateColumn As Range
+    Dim targetCell As Range
+    Dim dataRange As Range
+    Dim rowData As Range
+    
+    ' 設定工作表
+    Set ws = ThisWorkbook.Sheets("YourSheetName") ' 請將 "YourSheetName" 替換為你的工作表名稱
+    
+    ' 設定當前日期
+    currentDate = Date
+    
+    ' 計算前一天的日期
+    previousDate = currentDate - 1
+    
+    ' 假設日期在第一行，找到日期列範圍
+    Set dateColumn = ws.Rows(1) ' 假設日期在第一行，根據實際情況調整
+
+    ' 在日期列中尋找前一天的日期
+    Set targetCell = dateColumn.Find(previousDate)
+
+    If Not targetCell Is Nothing Then
+        ' 找到日期後，抓取日期下方的 3、4、5、6 行的數據
+        Set dataRange = ws.Range(targetCell.Offset(2, 0), targetCell.Offset(5, 0)) ' 偏移 2 行開始，直到第 6 行
+        For Each rowData In dataRange
+            Debug.Print rowData.Value ' 這裡你可以替換成你想要處理數據的方式，比如存入變數或進行其他操作
+        Next rowData
+    Else
+        MsgBox "未找到前一天的日期。"
+    End If
+End Sub
+```
+
+### 代碼解釋：
+
+1. **`currentDate = Date`**：獲取當前系統日期。
+2. **`previousDate = currentDate - 1`**：計算前一天的日期。
+3. **`dateColumn.Find(previousDate)`**：在日期列中尋找前一天的日期。
+4. **`targetCell.Offset(2, 0)` 到 `targetCell.Offset(5, 0)`**：從找到的日期下方的第 3 行到第 6 行提取數據。
+5. **`Debug.Print rowData.Value`**：這裡你可以將數據打印到控制台，或根據需求進行其他操作（例如存儲到變數或寫入到其他範圍）。
+
+### 進一步調整：
+- **日期所在行**：如果你的日期不在第一行，可以將 `dateColumn = ws.Rows(1)` 替換為實際日期所在的行。
+- **數據處理**：`Debug.Print rowData.Value` 是用來顯示提取數據的，你可以根據實際需求將數據保存到變數、數組，或進行其他處理。
+
+### 使用範例：
+
+假設你的 Excel 工作表 `YourSheetName` 的第一行有這個月的所有日期，該腳本會找到前一天的日期，並從該列的第 3 到第 6 行提取數據。
+
+### 如何在 UniPath 中使用：
+
+1. **讀取 Excel 檔案**：使用 `Excel Application Scope` 打開 Excel 檔案。
+2. **Invoke VBA**：在 `Invoke VBA` 活動中調用這段 VBA 代碼，並設置參數來執行這個腳本。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Invoke VBA
+      Code: "Sub GetPreviousDayData() '將代碼放入這裡 End Sub"
+```
+
+### 總結：
+- 這個 VBA 腳本可以幫助你在 Excel 中自動找到前一天的日期，並提取日期下方的指定行的數據。
+- 你可以根據需要調整代碼中日期範圍和數據提取方式。
+- 使用 UniPath 的 `Invoke VBA` 活動來運行這段代碼，可以輕鬆實現數據的自動化處理。
+
+這樣你就可以根據前一天的日期自動抓取其下方的數據，並進行進一步處理。
+
 使用 `Invoke VBA` 時，UniPath 會將 VBA 腳本作為一段代碼注入到 Excel 中運行，而不是像 Excel 自帶的宏一樣存儲在 Excel 文件中。這與 Excel 本身的宏有些不同，因此可能會遇到你描述的無法直接執行的問題。
 
 為了解決這個問題，我們可以遵循以下步驟來確保 `Invoke VBA` 正常工作：
