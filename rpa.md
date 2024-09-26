@@ -1,3 +1,125 @@
+好的！如果你只需要在 UniPath 中取得 Excel 內的值，而不進行 PowerPoint 的粘貼操作，我們可以簡化流程，僅通過 RPA 從 Excel 中提取前一天日期下方的指定儲存格的數據。
+
+### 簡化需求：
+1. **在 Excel 中找到前一天的日期**。
+2. **從該日期所在的列，提取其下方的 3、4、5、6 行的數據**。
+3. **將這些數據存儲在 UniPath 的變數中，供後續使用**。
+
+### 在 UniPath 中提取 Excel 內的值的具體步驟：
+
+#### 1. **使用 `Excel Application Scope` 打開 Excel 檔案**
+在 UniPath 中使用 `Excel Application Scope` 來打開你的 Excel 文件。
+
+#### 2. **使用 `Read Range` 讀取整個工作表**
+讀取 Excel 工作表中的數據，並存入一個 `DataTable` 中，便於後續操作。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "YourSheetName"  ' 替換為實際的工作表名稱
+      Range: ""  ' 讀取整個工作表，或僅讀取有日期的範圍
+      Output: dtExcelData  ' 將結果存入DataTable
+```
+
+#### 3. **查找前一天的日期**
+使用 UniPath 的 `For Each Row` 和 `If` 條件來找到前一天的日期。這裡假設日期在第一行。
+
+1. **設置變數**：
+   - `previousDate`: 存儲前一天的日期，使用 `Now.AddDays(-1).ToString("yyyy/MM/dd")` 計算。
+   - `dateColumnIndex`: 假設日期在第 1 行，這個變數存儲列號。
+
+2. **使用 `For Each Row` 迴圈遍歷日期列**：
+   - 使用 `If` 條件來檢查哪個欄位的日期等於 `previousDate`。
+
+```plaintext
+For Each Row in dtExcelData
+  If CurrentRow(0).ToString = previousDate
+    Assign: columnIndex = dtExcelData.Rows.IndexOf(CurrentRow) + 1  ' 找到日期所在的列
+    Break  ' 找到後跳出迴圈
+  End If
+End For
+```
+
+#### 4. **提取數據**
+根據找到的列號，提取該列下方的第 3、4、5、6 行數據。
+
+```plaintext
+Assign: value1 = dtExcelData.Rows(2)(columnIndex).ToString  ' 第3行的數據
+Assign: value2 = dtExcelData.Rows(3)(columnIndex).ToString  ' 第4行的數據
+Assign: value3 = dtExcelData.Rows(4)(columnIndex).ToString  ' 第5行的數據
+Assign: value4 = dtExcelData.Rows(5)(columnIndex).ToString  ' 第6行的數據
+```
+
+#### 5. **輸出數據**
+你可以將這些數據輸出或存儲在變數中，供後續流程使用。
+
+```plaintext
+Log Message
+  Input: "第3行數據: " + value1
+Log Message
+  Input: "第4行數據: " + value2
+Log Message
+  Input: "第5行數據: " + value3
+Log Message
+  Input: "第6行數據: " + value4
+```
+
+### 完整流程概述：
+
+1. **Excel Application Scope**：
+   - 打開 Excel 檔案。
+   
+2. **Read Range**：
+   - 讀取 Excel 的數據並存入 `DataTable`。
+
+3. **For Each Row**：
+   - 查找 `previousDate` 所在的列。
+
+4. **提取數據**：
+   - 從找到的列下方第 3、4、5、6 行的數據，並存入變數。
+
+### 流程圖範例：
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "YourSheetName"
+      Range: ""
+      Output: dtExcelData
+    
+    Assign previousDate = Now.AddDays(-1).ToString("yyyy/MM/dd")
+
+    For Each Row in dtExcelData
+      If CurrentRow(0).ToString = previousDate
+        Assign columnIndex = dtExcelData.Rows.IndexOf(CurrentRow) + 1
+        Break
+      End If
+    End For
+    
+    Assign value1 = dtExcelData.Rows(2)(columnIndex).ToString
+    Assign value2 = dtExcelData.Rows(3)(columnIndex).ToString
+    Assign value3 = dtExcelData.Rows(4)(columnIndex).ToString
+    Assign value4 = dtExcelData.Rows(5)(columnIndex).ToString
+    
+    Log Message: "第3行數據: " + value1
+    Log Message: "第4行數據: " + value2
+    Log Message: "第5行數據: " + value3
+    Log Message: "第6行數據: " + value4
+```
+
+### 總結：
+
+1. 你可以使用 `Excel Application Scope` 打開 Excel 文件，並通過 `Read Range` 讀取數據。
+2. 使用 `For Each Row` 和 `If` 條件來找到前一天的日期所在的列。
+3. 提取該列下方的第 3、4、5、6 行數據，並存儲到變數中，供後續處理。
+4. 可以通過 `Log Message` 或其他方式將這些數據輸出或進行後續的流程處理。
+
+這樣你可以很容易從 Excel 中動態提取前一天的相關數據。
+
 如果你的 Excel 中有當月份的所有日期，而你希望從當前日期找到「前一天」的日期，並獲取該日期下方的 3、4、5、6 行的數據，可以通過以下步驟來實現這個需求：
 
 ### 實現思路：
