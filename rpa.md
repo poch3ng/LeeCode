@@ -1,3 +1,117 @@
+如果你的日期在 Excel 的第 1 行（`Row(0)`），並且日期開始於第 `D` 列之後，你可以在 UniPath 中通過調整日期所在的列來找到正確的數據。接下來，我將幫助你修改原本的流程，以適應日期位於 `D` 列之後的情況。
+
+### 具體實現步驟：
+
+#### 1. **使用 `Excel Application Scope` 打開 Excel 檔案**
+
+首先，使用 `Excel Application Scope` 來打開你的 Excel 文件。
+
+#### 2. **使用 `Read Range` 讀取整個工作表**
+
+使用 `Read Range` 來讀取整個工作表的數據，並將數據存入 `DataTable` 中，這樣可以處理整個表的數據。
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "YourSheetName"  ' 替換為實際的工作表名稱
+      Range: ""  ' 讀取整個工作表
+      Output: dtExcelData  ' 將結果存入DataTable
+```
+
+#### 3. **查找前一天的日期**
+
+假設你的日期從 `D` 列開始，這樣可以通過遍歷第 1 行（`Row(0)`）來找到前一天的日期所在的列。
+
+1. **設置變數**：
+   - `previousDate`: 用來存儲前一天的日期，通過 `Now.AddDays(-1).ToString("yyyy/MM/dd")` 獲取。
+   - `columnIndex`: 用來存儲找到的列號。
+
+2. **使用 `For Each` 迴圈遍歷日期列（從 `D` 列開始）**：
+   使用 `If` 條件檢查第 1 行（`Row(0)`）的每一列是否是前一天的日期。
+
+```plaintext
+Assign previousDate = Now.AddDays(-1).ToString("yyyy/MM/dd")
+
+For Each columnIndex In Enumerable.Range(3, dtExcelData.Columns.Count - 3)
+  If dtExcelData.Rows(0)(columnIndex).ToString = previousDate
+    Assign foundColumn = columnIndex
+    Break
+  End If
+Next
+```
+
+這段邏輯中，我們遍歷從 `D` 列（即 `columnIndex = 3`）之後的每一列，並檢查哪一列的日期與 `previousDate` 相符。
+
+#### 4. **提取數據**
+
+找到日期所在的列後，你可以從該列下方的第 3、4、5、6 行提取數據。
+
+```plaintext
+Assign value1 = dtExcelData.Rows(2)(foundColumn).ToString  ' 第3行的數據
+Assign value2 = dtExcelData.Rows(3)(foundColumn).ToString  ' 第4行的數據
+Assign value3 = dtExcelData.Rows(4)(foundColumn).ToString  ' 第5行的數據
+Assign value4 = dtExcelData.Rows(5)(foundColumn).ToString  ' 第6行的數據
+```
+
+這樣就可以動態提取到前一天日期所在的列下方的數據。
+
+#### 5. **輸出數據或進行後續處理**
+
+你可以使用 `Log Message` 將這些數據輸出，或者將數據存入變數中進行後續操作。
+
+```plaintext
+Log Message
+  Input: "第3行數據: " + value1
+Log Message
+  Input: "第4行數據: " + value2
+Log Message
+  Input: "第5行數據: " + value3
+Log Message
+  Input: "第6行數據: " + value4
+```
+
+### 完整流程圖範例：
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "YourSheetName"
+      Range: ""
+      Output: dtExcelData
+    
+    Assign previousDate = Now.AddDays(-1).ToString("yyyy/MM/dd")
+
+    For Each columnIndex In Enumerable.Range(3, dtExcelData.Columns.Count - 3)
+      If dtExcelData.Rows(0)(columnIndex).ToString = previousDate
+        Assign foundColumn = columnIndex
+        Break
+      End If
+    Next
+    
+    Assign value1 = dtExcelData.Rows(2)(foundColumn).ToString
+    Assign value2 = dtExcelData.Rows(3)(foundColumn).ToString
+    Assign value3 = dtExcelData.Rows(4)(foundColumn).ToString
+    Assign value4 = dtExcelData.Rows(5)(foundColumn).ToString
+    
+    Log Message: "第3行數據: " + value1
+    Log Message: "第4行數據: " + value2
+    Log Message: "第5行數據: " + value3
+    Log Message: "第6行數據: " + value4
+```
+
+### 總結：
+
+1. **使用 `Excel Application Scope` 打開 Excel 文件**，並通過 `Read Range` 讀取整個工作表。
+2. **遍歷第 1 行從 `D` 列之後的每一列**，找到前一天的日期。
+3. **從找到的列下方第 3、4、5、6 行中提取數據**，並將數據存入變數或進行後續處理。
+4. 使用 `Log Message` 或其他方式輸出數據，或者將這些數據進行後續處理。
+
+這樣就可以通過 UniPath 自動從 Excel 文件中提取指定範圍的數據，並進行自動化處理。
+
 好的！如果你只需要在 UniPath 中取得 Excel 內的值，而不進行 PowerPoint 的粘貼操作，我們可以簡化流程，僅通過 RPA 從 Excel 中提取前一天日期下方的指定儲存格的數據。
 
 ### 簡化需求：
