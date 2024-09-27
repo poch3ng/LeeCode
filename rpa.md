@@ -1,3 +1,97 @@
+如果你希望在遇到無法解析的非日期值時直接忽略它，可以通過 `DateTime.TryParse` 的結果來跳過無效的日期欄位。在 UniPath 中，當 `DateTime.TryParse` 返回 `False` 時，你可以選擇不執行任何操作，只處理有效的日期數據。
+
+### 修改後的流程邏輯：
+
+1. 使用 `DateTime.TryParse` 嘗試解析每個欄位。
+2. 如果解析成功，將日期格式化為 `yyyy/MM/dd`，並進行後續操作。
+3. 如果無法解析為日期，則直接跳過，不執行任何動作。
+
+### 具體實現步驟：
+
+#### 1. **讀取 Excel 數據並遍歷每一行**
+使用 `Excel Application Scope` 讀取數據，並遍歷 DataTable 中的每一行。
+
+#### 2. **使用 `DateTime.TryParse` 檢查是否是有效日期**
+
+在遍歷每一行的過程中，使用 `DateTime.TryParse` 檢查日期欄位，如果成功解析，則格式化該日期並處理；如果無法解析，則忽略該欄位。
+
+### UniPath 流程範例：
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "YourSheetName"
+      Range: ""
+      Output: dtExcelData
+    
+    ' 假設日期在第D列，即第4列，從第2行開始處理數據
+    For Each row In dtExcelData
+      Assign excelDateValue = row(3).ToString  ' 假設日期在D列，即索引為3
+      
+      ' 使用 DateTime.TryParse 檢查是否是有效日期
+      If DateTime.TryParse(excelDateValue, dateParsed)
+        ' 如果是有效日期，則格式化日期
+        Assign formattedDate = dateParsed.ToString("yyyy/MM/dd")
+        
+        ' 進行日期處理或後續操作
+        Log Message: "格式化後的日期為: " + formattedDate
+      End If
+      ' 如果無法解析日期，直接跳過
+    Next
+```
+
+### 說明：
+
+1. **`DateTime.TryParse(excelDateValue, dateParsed)`**：
+   - 嘗試將 `excelDateValue` 轉換為 `DateTime`，如果成功，結果存儲在 `dateParsed` 中，並返回 `True`；如果失敗，返回 `False`。
+
+2. **`If` 條件判斷**：
+   - 當 `TryParse` 成功時，執行日期格式化操作。否則，直接跳過該行，不執行任何操作。
+
+3. **跳過無效日期**：
+   - 由於 `If` 條件的存在，無法解析為日期的欄位會自動被忽略。
+
+### 完整的流程圖範例：
+
+```plaintext
+Excel Application Scope
+  Path: "C:\YourFolder\a.xlsx"
+  Body:
+    Read Range
+      SheetName: "YourSheetName"
+      Range: ""
+      Output: dtExcelData
+    
+    Assign previousDate = Now.AddDays(-1).ToString("yyyy/MM/dd")
+
+    For Each row In dtExcelData
+      Assign excelDateValue = row(3).ToString  ' 假設日期在D列
+
+      ' 嘗試解析日期
+      If DateTime.TryParse(excelDateValue, dateParsed)
+        ' 成功解析，格式化日期
+        Assign formattedDate = dateParsed.ToString("yyyy/MM/dd")
+        Log Message: "格式化後的日期為: " + formattedDate
+      End If
+    Next
+```
+
+### 這樣的流程有以下優點：
+
+1. **安全處理無效數據**：使用 `DateTime.TryParse` 可以確保只處理有效的日期數據，無法解析為日期的欄位將被自動跳過。
+2. **簡潔的處理邏輯**：如果解析成功，就執行後續的日期處理；否則什麼都不做，確保流程不會因為無效數據中斷。
+3. **靈活性**：可以根據實際業務需求進行修改，比如記錄哪些數據無法解析等。
+
+### 總結：
+
+- **`DateTime.TryParse` 是安全的方式來解析日期**，不會因無效數據導致錯誤。
+- **只處理有效的日期數據**，無法解析的數據將被自動忽略。
+- **格式化成功的日期**，並執行後續的數據處理工作。
+
+這樣你可以確保在處理 Excel 中的日期時，不會因為格式不符的數據導致錯誤，並且有效地跳過無法解析的數據。
+
 如果你的日期在 Excel 的第 1 行（`Row(0)`），並且日期開始於第 `D` 列之後，你可以在 UniPath 中通過調整日期所在的列來找到正確的數據。接下來，我將幫助你修改原本的流程，以適應日期位於 `D` 列之後的情況。
 
 ### 具體實現步驟：
