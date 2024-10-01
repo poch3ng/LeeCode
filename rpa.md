@@ -1,3 +1,73 @@
+在 UniPath RPA 中，如果你想動態地找到 Excel 中有值的欄位，並獲取其列（column）和行（row），可以使用以下步驟：
+
+### 解決方案：
+1. **使用 `Read Range`**：首先讀取整個 Excel 表格的有值範圍到 `DataTable` 中。
+2. **動態檢查每個單元格是否有值**：通過迴圈檢查 `DataTable` 中的每個單元格，找到那些有值的欄位。
+3. **獲取對應的列和行位置**：當檢查到有值的單元格時，記錄其行和列。
+
+### 具體流程：
+
+#### 1. **讀取 Excel 有值的範圍**
+   使用 `Read Range` 活動讀取所有有值的欄位，將結果存到一個 `DataTable` 變數中。
+
+   ```rpa
+   dataTable = ExcelReadRange("", "Sheet1")  // 讀取整個表的所有有值欄位
+   ```
+
+#### 2. **迴圈檢查每個欄位是否有值**
+   使用 `For Each Row` 活動來遍歷每一行，並通過檢查欄位值來判斷是否有值。
+
+   ```rpa
+   For Each row In dataTable.Rows
+       For Each column In row
+           If Not String.IsNullOrEmpty(column.ToString())
+               // 記錄有值欄位的位置
+               Log("Row: " + rowIndex.ToString() + ", Column: " + columnIndex.ToString())
+           End If
+       Next
+   Next
+   ```
+
+#### 3. **獲取行和列的動態位置**
+   在迴圈中，可以使用 `rowIndex` 和 `columnIndex` 來記錄當前行和列的索引（位置），並將這些索引用於 `Select Range` 操作。
+
+#### 4. **使用行和列選取範圍**
+   當你找到目標單元格時，可以使用這些行和列索引來動態選取範圍。例如：
+   
+   ```rpa
+   ExcelSelectRange(rowIndex, columnIndex)
+   ```
+
+### 完整範例：
+
+```rpa
+// 1. 讀取 Excel 數據
+dataTable = ExcelReadRange("", "Sheet1")
+
+// 2. 遍歷所有行和列
+For Each row In dataTable.Rows
+    rowIndex = dataTable.Rows.IndexOf(row) + 1  // 獲取行索引
+    columnIndex = 1  // 從第一列開始
+
+    For Each column In row.ItemArray
+        If Not String.IsNullOrEmpty(column.ToString())
+            // 記錄有值的欄位位置
+            Log("Row: " + rowIndex.ToString() + ", Column: " + columnIndex.ToString())
+            // 動態選擇這個範圍
+            ExcelSelectRange("R" + rowIndex.ToString() + "C" + columnIndex.ToString())
+        End If
+        columnIndex += 1  // 下一列
+    Next
+Next
+```
+
+### 解釋：
+1. **`ExcelReadRange("", "Sheet1")`**：讀取整個工作表的有值範圍。
+2. **`rowIndex` 和 `columnIndex`**：用來追蹤行和列的位置，這些位置可以用於 `ExcelSelectRange` 來選取特定的範圍。
+3. **`ExcelSelectRange`**：動態選擇有值的欄位。
+
+這樣你可以動態地查找有值的欄位，並根據需要選取相應的範圍。
+
 如果你希望在遇到無法解析的非日期值時直接忽略它，可以通過 `DateTime.TryParse` 的結果來跳過無效的日期欄位。在 UniPath 中，當 `DateTime.TryParse` 返回 `False` 時，你可以選擇不執行任何操作，只處理有效的日期數據。
 
 ### 修改後的流程邏輯：
