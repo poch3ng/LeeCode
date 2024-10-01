@@ -1,3 +1,94 @@
+在 UniPath RPA 中，如果你想找到 Excel 中最右下角有值的欄位，並選擇從 `A1` 到這個欄位的範圍，具體的實現步驟如下：
+
+### 1. **使用 `Read Range` 讀取整個工作表的範圍**  
+使用 `ExcelReadRange` 讀取整個工作表的內容，並存儲在一個 `DataTable` 中。
+
+### 2. **找到最右下角的有值欄位**  
+使用迴圈檢查每一行和每一列，來找出最後有值的行和列的索引。
+
+### 3. **選擇範圍從 `A1` 到最右下角的欄位**  
+將範圍從 `A1` 到找到的最右下角有值的欄位，使用 `ExcelSelectRange` 來選擇。
+
+### 實現流程：
+
+#### 1. **讀取 Excel 數據**
+
+```rpa
+// 讀取整個 Excel 工作表
+dataTable = ExcelReadRange("", "Sheet1")
+```
+
+#### 2. **找到最右下的欄位**
+
+使用雙層迴圈來遍歷每一行和列，找出最右邊和最下面的有值欄位的索引。
+
+```rpa
+// 初始化最大行和列的索引
+maxRow = 0
+maxColumn = 0
+
+For Each row In dataTable.Rows
+    rowIndex = dataTable.Rows.IndexOf(row) + 1  // 獲取當前行索引
+
+    For Each column In row.ItemArray
+        columnIndex = row.ItemArray.ToList().IndexOf(column) + 1  // 獲取當前列索引
+        
+        If Not String.IsNullOrEmpty(column.ToString())
+            // 更新最大行和列索引
+            maxRow = rowIndex
+            maxColumn = columnIndex
+        End If
+    Next
+Next
+```
+
+#### 3. **選擇從 A1 到最右下角的範圍**
+
+一旦找到了最大行和列，使用 `ExcelSelectRange` 來選擇範圍。
+
+```rpa
+// 選擇範圍從 A1 到最右下角
+range = "A1:" + "R" + maxRow.ToString() + "C" + maxColumn.ToString()
+ExcelSelectRange(range)
+```
+
+### 完整範例流程：
+
+```rpa
+// 1. 讀取 Excel 數據
+dataTable = ExcelReadRange("", "Sheet1")
+
+// 2. 初始化最大行和列的索引
+maxRow = 0
+maxColumn = 0
+
+// 3. 遍歷每一行和列
+For Each row In dataTable.Rows
+    rowIndex = dataTable.Rows.IndexOf(row) + 1  // 獲取行索引
+
+    For Each column In row.ItemArray
+        columnIndex = row.ItemArray.ToList().IndexOf(column) + 1  // 獲取列索引
+
+        If Not String.IsNullOrEmpty(column.ToString())
+            // 更新最大行和列索引
+            maxRow = rowIndex
+            maxColumn = columnIndex
+        End If
+    Next
+Next
+
+// 4. 選擇從 A1 到最右下角有值欄位的範圍
+range = "A1:" + "R" + maxRow.ToString() + "C" + maxColumn.ToString()
+ExcelSelectRange(range)
+```
+
+### 解釋：
+1. **`ExcelReadRange("", "Sheet1")`**：讀取整個工作表中的所有有值的單元格。
+2. **`maxRow` 和 `maxColumn`**：用來記錄最後有值的行和列的索引。
+3. **`range = "A1:" + "R" + maxRow.ToString() + "C" + maxColumn.ToString()`**：生成選擇範圍，從 `A1` 到最右下角的欄位。
+
+這樣你就可以動態地找到最右下的欄位，並選擇從 `A1` 到該欄位的範圍。
+
 在 UniPath RPA 中，如果你想動態地找到 Excel 中有值的欄位，並獲取其列（column）和行（row），可以使用以下步驟：
 
 ### 解決方案：
