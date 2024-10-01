@@ -1,3 +1,91 @@
+在 UniPath RPA 中，如果你已經找到最右下角的行和列（如行 48 和列 33），但無法選擇從 `A1` 到該單元格（即 `AG48`），你需要將列號轉換成對應的 Excel 列名（例如，列 33 對應 Excel 的 `AG`），然後使用 `ExcelSelectRange` 選取範圍。
+
+這裡有具體的步驟來實現這個轉換並選取範圍：
+
+### 步驟：
+
+1. **將列號轉換成 Excel 列名**：列 33 對應 `AG`。
+2. **組合範圍字符串**：生成從 `A1` 到找到的單元格（如 `AG48`）的範圍字符串。
+3. **使用 `ExcelSelectRange` 選擇範圍**。
+
+### 實現方式：
+
+#### 1. **將列號轉換為 Excel 列名**
+   使用一個函數將列號轉換為 Excel 列名。
+
+#### 列號轉換函數範例：
+
+```rpa
+Function ColumnNumberToLetter(columnNumber As Integer) As String
+    Dim columnLetter As String = ""
+    
+    While columnNumber > 0
+        Dim modulo As Integer = (columnNumber - 1) Mod 26
+        columnLetter = Chr(65 + modulo) + columnLetter
+        columnNumber = (columnNumber - modulo) \ 26
+    End While
+    
+    Return columnLetter
+End Function
+```
+
+這個函數將列號轉換成對應的 Excel 列名（如 33 轉換為 `AG`）。
+
+#### 2. **組合範圍字符串**
+   使用上面的函數將列號轉換為列名，然後組合範圍字符串。
+
+```rpa
+// 找到的行和列
+maxRow = 48
+maxColumn = 33
+
+// 將列號轉換為列名
+columnLetter = ColumnNumberToLetter(maxColumn)
+
+// 組合範圍字符串
+range = "A1:" + columnLetter + maxRow.ToString()
+```
+
+#### 3. **使用 `ExcelSelectRange` 選擇範圍**
+
+```rpa
+// 選擇範圍 A1 到 AG48
+ExcelSelectRange(range)
+```
+
+### 完整範例：
+
+```rpa
+// 1. 定義列號轉換函數
+Function ColumnNumberToLetter(columnNumber As Integer) As String
+    Dim columnLetter As String = ""
+    
+    While columnNumber > 0
+        Dim modulo As Integer = (columnNumber - 1) Mod 26
+        columnLetter = Chr(65 + modulo) + columnLetter
+        columnNumber = (columnNumber - modulo) \ 26
+    End While
+    
+    Return columnLetter
+End Function
+
+// 2. 找到的行和列
+maxRow = 48
+maxColumn = 33
+
+// 3. 將列號轉換為列名
+columnLetter = ColumnNumberToLetter(maxColumn)
+
+// 4. 組合範圍字符串
+range = "A1:" + columnLetter + maxRow.ToString()
+
+// 5. 選擇範圍
+ExcelSelectRange(range)
+```
+
+### 結果：
+- 這段代碼會將列號 33 轉換成 Excel 列名 `AG`，並組合範圍 `A1:AG48`，最後使用 `ExcelSelectRange` 選擇這個範圍。
+
 在 UniPath RPA 中，如果你想找到 Excel 中最右下角有值的欄位，並選擇從 `A1` 到這個欄位的範圍，具體的實現步驟如下：
 
 ### 1. **使用 `Read Range` 讀取整個工作表的範圍**  
