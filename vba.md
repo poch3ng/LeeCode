@@ -1,3 +1,74 @@
+如果您想將藍色折線的資料標籤顯示在數據點的上方，紅色折線的資料標籤顯示在下方，可以使用 `.Position` 屬性來調整資料標籤的位置。以下是更新後的 VBA 代碼：
+
+### 更新的 VBA 代碼
+
+```vb
+Sub UpdateDataLabelsBasedOnDate()
+    Dim chart As ChartObject
+    Dim series As Series
+    Dim xValues As Variant
+    Dim yValues As Variant
+    Dim i As Integer
+    Dim todayDate As Date
+
+    ' 設定當前日期
+    todayDate = Date
+    
+    ' 假設折線圖為第一張圖表
+    Set chart = ActiveSheet.ChartObjects(1)
+    
+    ' 第一條線條 (藍色，標籤顯示在上方)
+    Set series = chart.Chart.SeriesCollection(1)
+    xValues = series.XValues
+    yValues = series.Values
+    series.DataLabels.Delete ' 移除所有資料標籤
+    For i = LBound(xValues) To UBound(xValues)
+        If xValues(i) = todayDate Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(0, 0, 255) ' 藍色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionAbove ' 標籤顯示在上方
+            End With
+        End If
+    Next i
+
+    ' 第二條線條 (紅色，標籤顯示在下方)
+    Set series = chart.Chart.SeriesCollection(2)
+    xValues = series.XValues
+    yValues = series.Values
+    series.DataLabels.Delete ' 移除所有資料標籤
+    For i = LBound(xValues) To UBound(xValues)
+        If xValues(i) = todayDate Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(255, 0, 0) ' 紅色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionBelow ' 標籤顯示在下方
+            End With
+        End If
+    Next i
+End Sub
+```
+
+### 代碼說明：
+1. **`.Position = xlLabelPositionAbove`**：將藍色折線的資料標籤顯示在數據點的上方。
+2. **`.Position = xlLabelPositionBelow`**：將紅色折線的資料標籤顯示在數據點的下方。
+
+### 標籤位置選項：
+- **`xlLabelPositionAbove`**：資料標籤顯示在數據點上方。
+- **`xlLabelPositionBelow`**：資料標籤顯示在數據點下方。
+- **`xlLabelPositionCenter`**：資料標籤顯示在數據點正中央。
+- **`xlLabelPositionLeft`**：資料標籤顯示在數據點左側。
+- **`xlLabelPositionRight`**：資料標籤顯示在數據點右側。
+
+### 執行方法：
+1. 和之前一樣，按 `Alt + F8`，選擇 `UpdateDataLabelsBasedOnDate`，然後執行。
+
+這樣，藍色的資料標籤將會顯示在上方，紅色的資料標籤會顯示在下方。你也可以根據需要進一步調整資料標籤的位置。
+
 根據您的回報，`series.Index = 1` 出現錯誤，原因是 `Series` 物件本身沒有 `Index` 屬性。要正確識別哪一條折線是第一條或第二條，我們可以使用 `SeriesCollection` 的索引來直接引用每一條折線，並分別進行處理。
 
 請使用以下更新的代碼：
