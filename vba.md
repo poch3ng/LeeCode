@@ -1,3 +1,87 @@
+要實現將今天（包含）以前的日期顯示為實線，未來的日期顯示為虛線，我們可以使用 VBA 動態設置圖表中的線條格式。具體步驟如下：
+
+### 更新的 VBA 代碼
+
+這段代碼不僅會根據今天的日期來動態顯示資料標籤和設置字型格式，還會對今天及之前的資料點使用實線，對未來的資料點使用虛線。
+
+```vb
+Sub UpdateDataLabelsAndLineStyleBasedOnDate()
+    Dim chart As ChartObject
+    Dim series As Series
+    Dim xValues As Variant
+    Dim i As Integer
+    Dim todayDate As Date
+    Dim lastPointIndex As Integer
+
+    ' 設定當前日期
+    todayDate = Date
+    
+    ' 假設折線圖為第一張圖表
+    Set chart = ActiveSheet.ChartObjects(1)
+
+    ' 第一條線條 (藍色，標籤顯示在上方)
+    Set series = chart.Chart.SeriesCollection(1)
+    xValues = series.XValues
+    series.DataLabels.Delete ' 移除所有資料標籤
+    lastPointIndex = UBound(xValues) ' 找到最後一筆資料的索引
+
+    For i = LBound(xValues) To UBound(xValues)
+        ' 顯示今天的資料標籤或是最後一個資料點的標籤
+        If xValues(i) = todayDate Or i = lastPointIndex Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(0, 0, 255) ' 藍色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionAbove ' 標籤顯示在上方
+            End With
+        End If
+        ' 設置實線和虛線
+        If xValues(i) <= todayDate Then
+            series.Format.Line.DashStyle = msoLineSolid ' 今天或之前的使用實線
+        Else
+            series.Format.Line.DashStyle = msoLineDash ' 未來的日期使用虛線
+        End If
+    Next i
+
+    ' 第二條線條 (紅色，標籤顯示在下方)
+    Set series = chart.Chart.SeriesCollection(2)
+    xValues = series.XValues
+    series.DataLabels.Delete ' 移除所有資料標籤
+    lastPointIndex = UBound(xValues) ' 找到最後一筆資料的索引
+
+    For i = LBound(xValues) To UBound(xValues)
+        ' 顯示今天的資料標籤或是最後一個資料點的標籤
+        If xValues(i) = todayDate Or i = lastPointIndex Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(255, 0, 0) ' 紅色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionBelow ' 標籤顯示在下方
+            End With
+        End If
+        ' 設置實線和虛線
+        If xValues(i) <= todayDate Then
+            series.Format.Line.DashStyle = msoLineSolid ' 今天或之前的使用實線
+        Else
+            series.Format.Line.DashStyle = msoLineDash ' 未來的日期使用虛線
+        End If
+    Next i
+End Sub
+```
+
+### 代碼說明：
+1. **`series.Format.Line.DashStyle = msoLineSolid`**：設置線條為實線，這是針對今天（包含）及之前的日期。
+2. **`series.Format.Line.DashStyle = msoLineDash`**：設置線條為虛線，這是針對未來的日期。
+3. **條件判斷**：代碼遍歷所有資料點，並根據日期決定是使用實線還是虛線。
+
+### 如何使用：
+1. 在 Excel 中按 `Alt + F11`，打開 VBA 編輯器，將代碼貼入模組中。
+2. 回到 Excel，按 `Alt + F8` 選擇 `UpdateDataLabelsAndLineStyleBasedOnDate` 宏並執行。
+
+這樣，你的圖表就能自動根據今天的日期來顯示實線和虛線，並且依然會顯示對應的資料標籤格式。
+
 為了確保兩條折線圖的最後一筆資料標籤顯示出來，我們需要在程式中額外添加一個條件，用於檢查和顯示每條折線的最後一個資料點的資料標籤。
 
 以下是更新後的 VBA 代碼，它除了根據今天的日期顯示資料標籤，還會顯示每條折線圖的最後一個資料標籤。
