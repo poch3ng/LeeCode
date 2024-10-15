@@ -1,3 +1,101 @@
+如果你想要逐段修改線的樣式，而不是一次性對整條線應用虛線樣式，那麼可以在每個點之間切換不同的樣式。這樣，你可以依據日期來動態地改變每一個點之間的線條樣式，例如：在過去日期使用實線，在未來日期使用虛線。
+
+在 VBA 中，無法直接針對單個點之間的線條應用不同樣式，但可以透過在每個資料點之後插入額外的「空」資料點（NaN），分段處理線條樣式。另一種方法是使用多條 Series，每一段都用不同的線條樣式。
+
+### 解決方法：使用兩條 Series 來分段應用不同樣式
+這裡提供一個範例，分成兩個 Series：一個用於顯示實線（過去的資料點），另一個用於顯示虛線（未來的資料點）。
+
+### 修改程式碼範例：
+
+```vba
+Sub UpdateDataLabelsAndSegmentedLineStyleBasedOnDate()
+    Dim chart As ChartObject
+    Dim series As Series
+    Dim xValues As Variant
+    Dim yValues As Variant
+    Dim i As Integer
+    Dim todayDate As Date
+    Dim lastPointIndex As Integer
+    Dim isFuture As Boolean
+    Dim xDate As Date
+
+    ' 設定當前日期
+    todayDate = Date
+    
+    ' 假設折線圖為第一張圖表
+    Set chart = ActiveSheet.ChartObjects(1)
+
+    ' 第一條線條 (藍色，標籤顯示在上方) - 顯示過去和今天的實線
+    Set series = chart.Chart.SeriesCollection(1)
+    xValues = series.XValues ' 取得 X 軸日期
+    yValues = series.Values ' 取得 Y 軸數值
+    series.DataLabels.Delete ' 移除所有資料標籤
+    lastPointIndex = UBound(xValues) ' 找到最後一筆資料的索引
+    
+    For i = LBound(xValues) To UBound(xValues)
+        ' 將 X 軸的數值轉換成日期
+        xDate = CDate(xValues(i))
+
+        ' 記錄 X 軸的日期值以便排查
+        Debug.Print "xDate(" & i & "): " & xDate
+        
+        ' 顯示今天的資料標籤或是最後一個資料點的標籤
+        If xDate = todayDate Or i = lastPointIndex Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(0, 0, 255) ' 藍色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionAbove ' 標籤顯示在上方
+            End With
+        End If
+
+        ' 如果 xDate 是未來的資料，跳出這條線條的迴圈，切換到下一條線
+        If xDate > todayDate Then Exit For
+    Next i
+
+    ' 第二條線條 (藍色虛線，顯示未來的線條)
+    Set series = chart.Chart.SeriesCollection(2)
+    xValues = series.XValues ' 取得 X 軸日期
+    yValues = series.Values ' 取得 Y 軸數值
+    series.DataLabels.Delete ' 移除所有資料標籤
+    lastPointIndex = UBound(xValues) ' 找到最後一筆資料的索引
+    
+    For i = LBound(xValues) To UBound(xValues)
+        ' 將 X 軸的數值轉換成日期
+        xDate = CDate(xValues(i))
+
+        ' 記錄 X 軸的日期值以便排查
+        Debug.Print "xDate(" & i & "): " & xDate
+        
+        ' 顯示最後一個資料點的標籤
+        If i = lastPointIndex Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(0, 0, 255) ' 藍色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionAbove ' 標籤顯示在上方
+            End With
+        End If
+
+        ' 如果資料點是未來，設定虛線
+        If xDate > todayDate Then
+            series.Format.Line.DashStyle = msoLineDash ' 設定虛線
+        End If
+    Next i
+End Sub
+```
+
+### 解釋：
+1. **第一條線條（實線）**：這條線顯示今天及之前的資料點，並使用實線樣式。當超過今天的資料點時，迴圈退出，避免繼續繪製未來的資料。
+2. **第二條線條（虛線）**：這條線從今天之後的資料點開始顯示，並使用虛線樣式。
+
+### 優化：
+如果你想進一步細分樣式，還可以將資料分為更多段，將未來的每個區段分成不同的系列來處理，這樣可以針對每一段應用不同的樣式或顏色。
+
+這樣就可以達到分段改變線條樣式的效果。
+
 要實現今天之前的資料點用實線、未來的資料點用虛線，不能只用一次性設定整條折線的線條格式。相反，必須拆分成兩個部分，一個部分是顯示實線（今天之前的資料點），另一個部分顯示虛線（未來的資料點）。這需要將折線圖拆分成兩個不同的系列來進行格式化。
 
 更新的 VBA 代碼將折線圖根據日期分成兩個部分來顯示，一個是實線（今天及之前），另一個是虛線（未來的日期）。
