@@ -1,3 +1,79 @@
+為了確保兩條折線圖的最後一筆資料標籤顯示出來，我們需要在程式中額外添加一個條件，用於檢查和顯示每條折線的最後一個資料點的資料標籤。
+
+以下是更新後的 VBA 代碼，它除了根據今天的日期顯示資料標籤，還會顯示每條折線圖的最後一個資料標籤。
+
+### 更新的 VBA 代碼
+
+```vb
+Sub UpdateDataLabelsBasedOnDate()
+    Dim chart As ChartObject
+    Dim series As Series
+    Dim xValues As Variant
+    Dim yValues As Variant
+    Dim i As Integer
+    Dim todayDate As Date
+    Dim lastPointIndex As Integer
+
+    ' 設定當前日期
+    todayDate = Date
+    
+    ' 假設折線圖為第一張圖表
+    Set chart = ActiveSheet.ChartObjects(1)
+    
+    ' 第一條線條 (藍色，標籤顯示在上方)
+    Set series = chart.Chart.SeriesCollection(1)
+    xValues = series.XValues
+    yValues = series.Values
+    series.DataLabels.Delete ' 移除所有資料標籤
+    
+    lastPointIndex = UBound(xValues) ' 找到最後一筆資料的索引
+    
+    For i = LBound(xValues) To UBound(xValues)
+        ' 顯示今天的資料標籤或是最後一個資料點的標籤
+        If xValues(i) = todayDate Or i = lastPointIndex Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(0, 0, 255) ' 藍色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionAbove ' 標籤顯示在上方
+            End With
+        End If
+    Next i
+
+    ' 第二條線條 (紅色，標籤顯示在下方)
+    Set series = chart.Chart.SeriesCollection(2)
+    xValues = series.XValues
+    yValues = series.Values
+    series.DataLabels.Delete ' 移除所有資料標籤
+    
+    lastPointIndex = UBound(xValues) ' 找到最後一筆資料的索引
+    
+    For i = LBound(xValues) To UBound(xValues)
+        ' 顯示今天的資料標籤或是最後一個資料點的標籤
+        If xValues(i) = todayDate Or i = lastPointIndex Then
+            series.Points(i).ApplyDataLabels ' 顯示資料標籤
+            With series.Points(i).DataLabel
+                .Font.Size = 12 ' 設置字型大小
+                .Font.Color = RGB(255, 0, 0) ' 紅色
+                .Font.Bold = True ' 加粗
+                .Position = xlLabelPositionBelow ' 標籤顯示在下方
+            End With
+        End If
+    Next i
+End Sub
+```
+
+### 代碼說明：
+1. **`lastPointIndex = UBound(xValues)`**：這行代碼找到每條折線圖的最後一筆資料索引。
+2. **`If xValues(i) = todayDate Or i = lastPointIndex Then`**：此條件確保程式顯示今天日期的資料標籤，或者顯示最後一筆資料的標籤。
+3. **標籤位置與字型格式**：根據折線圖的索引，對應設置藍色線條標籤在上方、紅色線條標籤在下方，並且加粗字型與設置字型顏色。
+
+### 執行方法：
+1. 按 `Alt + F8`，選擇 `UpdateDataLabelsBasedOnDate`，然後執行。
+
+這樣，除了顯示今天日期的資料標籤外，兩條折線圖的最後一個資料標籤也會顯示出來。你可以根據需要進一步調整代碼來符合具體要求。
+
 如果您想將藍色折線的資料標籤顯示在數據點的上方，紅色折線的資料標籤顯示在下方，可以使用 `.Position` 屬性來調整資料標籤的位置。以下是更新後的 VBA 代碼：
 
 ### 更新的 VBA 代碼
