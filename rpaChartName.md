@@ -1,3 +1,32 @@
+要在 VBA 中取得前一天的日期，並將其格式化成「`YYYY-MM月`」的格式（例如：`2024-10月`），你可以使用以下的 VBA 代碼來實現：
+
+### VBA 代碼：
+
+```vba
+Sub GetPreviousDayFormatted()
+    ' 取得前一天的日期
+    Dim previousDay As Date
+    previousDay = Date - 1 ' 當前日期減1即為前一天
+
+    ' 格式化為 YYYY-MM月
+    Dim formattedDate As String
+    formattedDate = Format(previousDay, "yyyy-MM") & "月"
+
+    ' 顯示結果（可選）
+    MsgBox formattedDate
+End Sub
+```
+
+### 解釋：
+1. `Date - 1`：這個表達式會取得前一天的日期。
+2. `Format(previousDay, "yyyy-MM") & "月"`：這個表達式會將前一天的日期格式化為 `YYYY-MM`，然後再加上 "月"。
+
+### 如何在 UiPath 中使用：
+1. 使用 `Invoke VBA` 活動來執行這段 VBA 代碼，並將其結果儲存或用於修改圖表標題。
+2. 如果你需要將結果傳回 UiPath，可以修改這段代碼來返回格式化的日期，並使用 `OutArgument` 來將其傳遞給 UiPath。
+
+如果需要直接將這個格式化的日期用於更改圖表標題，你可以將這段代碼嵌入到修改圖表標題的 VBA 代碼中。
+
 是的，UiPath 中的 `Invoke VBA` 活動是可以直接執行內嵌的 VBA 代碼的，而不需要另外生成和保存一個外部的 `.txt` 文件。因此，你可以直接在 `Invoke VBA` 活動中寫入你的 VBA 代碼。
 
 以下是如何直接使用 `Invoke VBA` 來修改工作表中圖表標題的具體步驟：
