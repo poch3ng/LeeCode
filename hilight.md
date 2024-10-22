@@ -1,3 +1,51 @@
+要針對第三頁的PowerPoint投影片，將名為 `highlight` 的文字方塊移到最上層，您可以修改VBA程式碼，指定第三頁進行操作。以下是修改後的VBA程式碼：
+
+### VBA 程式碼範例（針對第三頁）
+
+```vba
+Sub BringHighlightToFrontOnSlide3()
+    Dim shp As Shape
+    Dim slide As slide
+
+    ' 確認第三頁投影片
+    Set slide = ActivePresentation.Slides(3)
+
+    ' 嘗試找到名為 'highlight' 的文字方塊
+    On Error Resume Next
+    Set shp = slide.Shapes("highlight")
+    On Error GoTo 0
+
+    ' 檢查是否找到該物件
+    If shp Is Nothing Then
+        MsgBox "未找到名為 'highlight' 的物件"
+    Else
+        ' 將該物件移到最上層
+        shp.ZOrder msoBringToFront
+        MsgBox "'highlight' 物件已移至第三頁的最上層"
+    End If
+End Sub
+```
+
+### 程式碼說明：
+1. **`ActivePresentation.Slides(3)`**：指定第三頁投影片（編號從1開始，所以 `Slides(3)` 對應第三頁）。
+2. 其他部分邏輯保持不變，針對第三頁進行 `highlight` 文字方塊的查找與層級移動。
+
+### 操作步驟：
+1. **開啟VBA編輯器**：
+   - 按 `Alt + F11` 開啟VBA編輯器。
+   - 插入一個新模組，將上述程式碼貼上到模組中。
+2. **確認第三頁有名為 `highlight` 的文字方塊**。
+3. **執行宏**：
+   - 按 `Alt + F8`，選擇 `BringHighlightToFrontOnSlide3` 並執行。
+4. **檢查結果**：`highlight` 文字方塊將會被移至第三頁的最上層。
+
+### UiPath 執行 VBA：
+您可以在UiPath中使用 `Invoke VBA` 來執行這段程式碼。步驟如下：
+1. 在PowerPoint中儲存這段VBA程式碼。
+2. 在UiPath流程中，使用 `Invoke VBA` 活動來呼叫這個VBA函數 `BringHighlightToFrontOnSlide3`。
+
+這樣您就能夠自動化處理第三頁上指定物件的層級移動操作。
+
 若要使用VBA將一個名為 `highlight` 的文字方塊移到最上層，可以使用以下VBA程式碼來實現：
 
 ### VBA 程式碼範例
