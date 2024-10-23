@@ -1,3 +1,94 @@
+如果你在這個 class 中已經有一個持續存在的資料庫連線物件 `conBusmang`，並且想要重用這個連線來執行查詢，那麼你可以修改你的程式碼來避免每次都建立新的 `SqlConnection`，而是直接使用現有的連線。
+
+以下是修改後的範例，假設 `conBusmang` 是一個已經打開的資料庫連線：
+
+### 修改後的程式碼：
+
+```vb
+Imports System.Data.SqlClient
+Imports System.Data
+
+Public Class YourClass
+    ' 假設這裡有一個全局的資料庫連線
+    Private conBusmang As SqlConnection
+
+    ' 建構子或其他方法初始化資料庫連線
+    Public Sub New(connectionString As String)
+        ' 初始化資料庫連線
+        conBusmang = New SqlConnection(connectionString)
+        conBusmang.Open() ' 確保連線已打開
+    End Sub
+
+    ' 取得WMS_Bonded_v資料表的方法
+    Public Function 取得WMSBonded資料表(row As DataRow) As DataTable
+        ' 建立一個空的 DataTable
+        Dim resultTable As New DataTable()
+
+        ' SQL 查詢，根據 IVNO 條件從 WMS_Bonded_v 表格中查詢
+        Dim query As String = "SELECT * FROM WMS_Bonded_v WHERE IVNO = @IVNO"
+
+        ' 使用現有的資料庫連線
+        Using command As New SqlCommand(query, conBusmang)
+            Try
+                ' 將 DataRow 中的 IVNO 值作為 SQL 查詢的參數
+                command.Parameters.AddWithValue("@IVNO", row("IVNO"))
+
+                ' 使用 SqlDataAdapter 將結果填充到 DataTable
+                Using adapter As New SqlDataAdapter(command)
+                    adapter.Fill(resultTable)
+                End Using
+            Catch ex As Exception
+                ' 錯誤處理
+                Console.WriteLine("發生錯誤: " & ex.Message)
+            End Try
+        End Using
+
+        ' 返回填充的 DataTable
+        Return resultTable
+    End Function
+
+    ' 清理連線資源的析構方法
+    Protected Overrides Sub Finalize()
+        Try
+            If conBusmang IsNot Nothing AndAlso conBusmang.State = ConnectionState.Open Then
+                conBusmang.Close()
+            End If
+        Finally
+            MyBase.Finalize()
+        End Try
+    End Sub
+End Class
+```
+
+### 修改要點：
+
+1. **資料庫連線的重用**：在這裡，我們使用 `conBusmang` 作為一個全局變數，代表資料庫連線，並在 `New` 方法（建構子）中初始化並打開連線。這樣，你的查詢操作可以重用這個連線，而不是每次執行查詢時都建立新連線。
+   
+2. **使用現有連線**：在 `取得WMSBonded資料表` 函式中，`SqlCommand` 使用現有的 `conBusmang` 連線物件，而不是每次都創建新的 `SqlConnection`。
+
+3. **資源清理**：為了確保連線在不再使用時正確關閉，你可以在 class 的析構方法中關閉連線（`Finalize`），這樣當物件被垃圾回收時，連線會被正確地關閉。你也可以選擇實現 `IDisposable` 介面來更好地控制資源釋放。
+
+### 呼叫方式：
+
+```vb
+' 建立 class 的實例並傳入連線字串
+Dim myClass As New YourClass("你的連線字串")
+
+Dim row As DataRow = ' 你的 DataRow 資料，包含 IVNO 欄位
+Dim table As DataTable = myClass.取得WMSBonded資料表(row)
+
+' 檢查 DataTable 是否有資料
+If table.Rows.Count > 0 Then
+    ' 有匹配資料，進行比對或其他操作
+    Console.WriteLine("找到符合的資料")
+Else
+    ' 沒有匹配資料
+    Console.WriteLine("沒有找到符合的資料")
+End If
+```
+
+這樣做的好處是減少了每次查詢都創建和關閉連線的開銷，特別是在連線需要重複使用的情況下，能提高性能並減少連線管理的複雜度。
+
 如果你的 SQL 查詢是要從資料庫中查詢符合特定 `IVNO` 條件的資料，那麼你可以將這個條件應用到 `SqlCommand` 內，並使用 `SqlDataAdapter` 來執行查詢，然後將結果存入 `DataTable` 中。這樣你可以根據查詢的結果進行比對或其他操作。
 
 ### 具體的範例程式碼：
