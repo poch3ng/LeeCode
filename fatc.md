@@ -1,3 +1,72 @@
+為了實現當比對中發現不匹配時，能夠告訴你是哪一個值出錯，你可以修改程式碼來逐一比對陣列中的每個元素，並在發現不匹配時記錄是哪一個位置的值不同。
+
+以下是修改後的程式碼，當比對過程中發現某個位置的值不匹配時，會輸出錯誤的索引和對應的值：
+
+### 修改後的程式碼：
+
+```vb
+For Each row1 As DataRow In dataTable1.Rows
+    ' 檢查 BondedIT 是否為 1
+    If row1.Field(Of Integer)("BondedIT") = 1 Then
+        ' 取得 BondedNo 的值並根據分號分割為陣列
+        Dim bondedNoArray As String() = row1.Field(Of String)("BondedNo").Split(";"c)
+
+        ' 在第二個表中進行比對
+        For Each row2 As DataRow In dataTable2.Rows
+            ' 取得 BondedNo1 的值並分割為陣列
+            Dim bondedNo1Array As String() = row2.Field(Of String)("BondedNo1").Split(";"c)
+
+            ' 先檢查兩個陣列的長度是否一致
+            If bondedNoArray.Length = bondedNo1Array.Length Then
+                ' 比對每個元素是否一致
+                Dim isMatch As Boolean = True
+                For i As Integer = 0 To bondedNoArray.Length - 1
+                    If bondedNoArray(i) <> bondedNo1Array(i) Then
+                        ' 如果不一致，記錄出錯的索引與值
+                        Console.WriteLine($"錯誤: 第 {i + 1} 個值不匹配 - BondedNo: {bondedNoArray(i)} 與 BondedNo1: {bondedNo1Array(i)}")
+                        isMatch = False
+                    End If
+                Next
+
+                ' 如果所有值都匹配，則輸出匹配訊息
+                If isMatch Then
+                    Console.WriteLine($"完全匹配: {String.Join(";", bondedNoArray)}")
+                End If
+            Else
+                ' 長度不一致時，直接輸出不匹配訊息
+                Console.WriteLine("錯誤: BondedNo 和 BondedNo1 的長度不一致")
+            End If
+        Next
+    End If
+Next
+```
+
+### 具體實現說明：
+
+1. **檢查長度**：首先比較 `bondedNoArray.Length` 和 `bondedNo1Array.Length`，如果長度不一致，則直接輸出長度不一致的錯誤訊息，因為這樣的情況下不需要進行具體的值比對。
+
+2. **逐一比對**：使用 `For` 迴圈逐一比較兩個陣列中的每一個元素 (`bondedNoArray(i)` 和 `bondedNo1Array(i)`)。當發現兩者不相等時，記錄出錯的位置（索引值）和對應的值。
+
+3. **索引值**：因為 `For` 迴圈是從 0 開始，所以在輸出錯誤訊息時，使用 `i + 1` 來表示實際的項目編號，以便符合人們的習慣（從第 1 個項目開始數）。
+
+4. **輸出結果**：如果兩個陣列中的所有值都匹配，則輸出 "完全匹配" 訊息；如果有不匹配，則會逐個列出不匹配的索引與值。
+
+### 測試情境：
+
+假設 `BondedNo` 為 `"A;B;C"`，而 `BondedNo1` 為 `"A;D;C"`。
+
+輸出的結果會是：
+```
+錯誤: 第 2 個值不匹配 - BondedNo: B 與 BondedNo1: D
+```
+
+如果 `BondedNo` 為 `"A;B;C"` 且 `BondedNo1` 也是 `"A;B;C"`，則會輸出：
+```
+完全匹配: A;B;C
+```
+
+這樣的設計可以幫助你精確地定位哪一個位置出現了不匹配，並列出具體的錯誤資訊。
+
 如果 `BondedIT = 1` 對應的是另一個表中的 `BondedNo1`，並且 `BondedNo1` 的值是以分號 (`;`) 來分隔的多個元素，你可以根據 `BondedNo` 值進行比對，檢查 `BondedNo1` 是否包含該值。具體步驟如下：
 
 1. 從 `DataTable` 中找到 `BondedIT = 1` 的行。
