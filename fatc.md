@@ -1,3 +1,56 @@
+如果 `BondedIT = 1` 對應的是另一個表中的 `BondedNo1`，並且 `BondedNo1` 的值是以分號 (`;`) 來分隔的多個元素，你可以根據 `BondedNo` 值進行比對，檢查 `BondedNo1` 是否包含該值。具體步驟如下：
+
+1. 從 `DataTable` 中找到 `BondedIT = 1` 的行。
+2. 取得 `BondedNo` 值，然後與另一個表中的 `BondedNo1` 欄位進行比對。
+3. 使用 `Split` 方法將 `BondedNo1` 的值根據分號分隔成陣列，然後逐一比對是否包含目標 `BondedNo`。
+
+### 具體範例：
+
+#### 假設兩個 `DataTable`：
+- 第一個表是你要檢查的表，其中有 `BondedIT` 和 `BondedNo` 欄位。
+- 第二個表有 `BondedNo1` 欄位，並且 `BondedNo1` 是用分號分隔的多個值。
+
+#### 1. 先在第一個表中找出 `BondedIT = 1` 的行，然後比對 `BondedNo`。
+#### 2. 再在第二個表中找 `BondedNo1` 是否包含該 `BondedNo`。
+
+### 程式碼範例：
+
+```vb
+' 假設 dataTable1 是包含 BondedIT 和 BondedNo 的表
+' 假設 dataTable2 是包含 BondedNo1 的表
+
+For Each row1 As DataRow In dataTable1.Rows
+    ' 檢查 BondedIT 是否為 1
+    If row1.Field(Of Integer)("BondedIT") = 1 Then
+        ' 取得 BondedNo 的值
+        Dim bondedNo As String = row1.Field(Of String)("BondedNo")
+
+        ' 在第二個表中進行比對
+        For Each row2 As DataRow In dataTable2.Rows
+            ' 取得 BondedNo1 的值並分割成陣列
+            Dim bondedNo1List As String() = row2.Field(Of String)("BondedNo1").Split(";"c)
+
+            ' 檢查是否包含 BondedNo
+            If bondedNo1List.Contains(bondedNo) Then
+                ' 如果匹配，則執行相應的邏輯
+                Console.WriteLine($"找到匹配的 BondedNo: {bondedNo} 在 BondedNo1: {String.Join(";", bondedNo1List)}")
+            End If
+        Next
+    End If
+Next
+```
+
+### 具體解釋：
+1. **`Split` 方法**：`row2.Field(Of String)("BondedNo1").Split(";"c)` 將 `BondedNo1` 的字串根據分號 `;` 分割為一個陣列。`"c"` 表示用單一字元 `;` 來進行分割。
+2. **比對**：`bondedNo1List.Contains(bondedNo)` 會檢查 `BondedNo1` 分割後的陣列是否包含 `BondedNo`，如果有，則表示匹配。
+3. **兩個表的遍歷**：先遍歷第一個表，當 `BondedIT = 1` 時，從第二個表中找出 `BondedNo1`，並比對 `BondedNo` 是否存在於 `BondedNo1` 分隔的項目中。
+
+### 修改後的邏輯：
+- 如果 `BondedNo` 需要對應 `BondedNo1` 中的一個元素，那麼 `Split` 可以幫助你將 `BondedNo1` 中的多個值分離開來，然後你可以針對這些值進行比對。
+- 適用於一對多的比對場景，即一個 `BondedNo` 可能存在於多個 `BondedNo1` 值中。
+
+這樣的程式碼能夠實現你對 `BondedIT` 為 1 的 `BondedNo` 與另一個表中的 `BondedNo1` 進行比對的需求。
+
 如果你想從 `DataTable` 中找到 `BondedIT` 欄位值為 1 的行，並取得該行的 `BondedNo` 欄位的值，你可以在迴圈中進行比對，然後根據條件來取得 `BondedNo` 欄位的值。
 
 以下是具體的實現範例：
