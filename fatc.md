@@ -1,3 +1,66 @@
+如果你想從 `DataTable` 中找到 `BondedIT` 欄位值為 1 的行，並取得該行的 `BondedNo` 欄位的值，你可以在迴圈中進行比對，然後根據條件來取得 `BondedNo` 欄位的值。
+
+以下是具體的實現範例：
+
+### 1. 使用迴圈來比對 `BondedIT` 是否為 1，並取得 `BondedNo`：
+
+```vb
+For Each row As DataRow In dataTable.Rows
+    ' 檢查 BondedIT 欄位是否為 1
+    If row("BondedIT").ToString() = "1" Then
+        ' 如果 BondedIT 為 1，取得 BondedNo 欄位的值
+        Dim bondedNo As String = row("BondedNo").ToString()
+        Console.WriteLine("BondedNo: " & bondedNo)
+    End If
+Next
+```
+
+### 2. 使用 `Field(Of T)` 來取得具體型別的值並進行比對：
+
+這樣可以確保你取得的值是正確的型別，而不必轉換為字串後再比對。
+
+```vb
+For Each row As DataRow In dataTable.Rows
+    ' 使用 Field(Of T) 方法來取得數值進行比對
+    Dim bondedIT As Integer = row.Field(Of Integer)("BondedIT")
+
+    ' 檢查 BondedIT 是否為 1
+    If bondedIT = 1 Then
+        ' 取得 BondedNo 的值
+        Dim bondedNo As String = row.Field(Of String)("BondedNo")
+        Console.WriteLine("BondedNo: " & bondedNo)
+    End If
+Next
+```
+
+### 3. 若想將所有符合條件的 `BondedNo` 存入列表：
+
+你可以將所有符合 `BondedIT = 1` 的 `BondedNo` 值收集起來，並進行進一步的操作，例如儲存在一個列表中。
+
+```vb
+Dim bondedNoList As New List(Of String)()
+
+For Each row As DataRow In dataTable.Rows
+    ' 檢查 BondedIT 是否為 1
+    If row.Field(Of Integer)("BondedIT") = 1 Then
+        ' 將符合條件的 BondedNo 加入列表
+        bondedNoList.Add(row.Field(Of String)("BondedNo"))
+    End If
+Next
+
+' 顯示所有符合條件的 BondedNo
+For Each bondedNo As String In bondedNoList
+    Console.WriteLine("BondedNo: " & bondedNo)
+Next
+```
+
+### 解釋：
+1. **比對條件**：使用 `If row("BondedIT").ToString() = "1"` 或 `row.Field(Of Integer)("BondedIT") = 1` 來檢查 `BondedIT` 欄位的值是否為 1。
+2. **取得 `BondedNo`**：如果條件符合，則使用 `row("BondedNo").ToString()` 或 `row.Field(Of String)("BondedNo")` 來取得對應的 `BondedNo` 欄位的值。
+3. **列表收集**：如果需要將所有符合條件的 `BondedNo` 值收集起來，可以將它們加入一個 `List(Of String)` 中，然後進行進一步的操作。
+
+這樣的邏輯能夠讓你從 `DataTable` 中篩選出 `BondedIT` 為 1 的所有 `BondedNo`，並對它們進行處理。
+
 在 `DataTable` 中，你可以通過 `DataRow` 來訪問特定的欄位。每一個 `DataRow` 代表一行資料，你可以使用欄位名稱或索引來取得特定欄位的值。
 
 以下是幾種常見的方法來取得 `DataTable` 中特定欄位的資料：
