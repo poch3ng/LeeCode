@@ -1,3 +1,65 @@
+在 `DataTable` 中，你可以通過 `DataRow` 來訪問特定的欄位。每一個 `DataRow` 代表一行資料，你可以使用欄位名稱或索引來取得特定欄位的值。
+
+以下是幾種常見的方法來取得 `DataTable` 中特定欄位的資料：
+
+### 1. 使用欄位名稱來取得資料：
+
+```vb
+For Each row As DataRow In dataTable.Rows
+    ' 使用欄位名稱來取得資料
+    Dim ivnoValue As String = row("IVNO").ToString()
+    Console.WriteLine("IVNO: " & ivnoValue)
+Next
+```
+
+### 2. 使用欄位索引來取得資料：
+
+如果你知道欄位的索引位置（0 為第一個欄位），你也可以使用欄位索引來取得資料：
+
+```vb
+For Each row As DataRow In dataTable.Rows
+    ' 使用欄位索引來取得資料（假設 IVNO 是第 0 個欄位）
+    Dim ivnoValue As String = row(0).ToString()
+    Console.WriteLine("IVNO: " & ivnoValue)
+Next
+```
+
+### 3. 使用 `Field(Of T)` 方法來取得具體資料類型：
+
+你也可以使用 `Field(Of T)` 方法來取得特定型別的資料，這樣你可以避免將資料轉換為字串再轉換回特定型別：
+
+```vb
+For Each row As DataRow In dataTable.Rows
+    ' 使用 Field(Of T) 來取得具體型別的資料
+    Dim ivnoValue As String = row.Field(Of String)("IVNO")
+    Console.WriteLine("IVNO: " & ivnoValue)
+Next
+```
+
+### 範例整合：
+
+假設你想要取得 `DataTable` 中的 `IVNO` 欄位並進行操作，你可以這樣做：
+
+```vb
+Dim dataTable As DataTable = ' 你的 DataTable 資料
+
+If dataTable.Rows.Count > 0 Then
+    For Each row As DataRow In dataTable.Rows
+        ' 使用欄位名稱取得特定欄位的值
+        Dim ivnoValue As String = row("IVNO").ToString()
+        Console.WriteLine("IVNO: " & ivnoValue)
+        
+        ' 你可以在這裡進行進一步的邏輯處理
+    Next
+Else
+    Console.WriteLine("沒有找到符合的資料")
+End If
+```
+
+### 注意事項：
+- 當你取得欄位值時，建議使用欄位名稱，因為這樣程式碼的可讀性更高，也不易因為資料表結構變動而出錯。
+- 如果有可能遇到 `DBNull` 的情況，可以使用 `IsDBNull(row("欄位名"))` 來進行檢查，避免轉換錯誤。
+
 如果你在這個 class 中已經有一個持續存在的資料庫連線物件 `conBusmang`，並且想要重用這個連線來執行查詢，那麼你可以修改你的程式碼來避免每次都建立新的 `SqlConnection`，而是直接使用現有的連線。
 
 以下是修改後的範例，假設 `conBusmang` 是一個已經打開的資料庫連線：
