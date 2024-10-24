@@ -1,3 +1,68 @@
+如果對你來說「長度為 0 的陣列」和 `null`（或 `Nothing`）應該視為相同情況，即你希望將這兩者都視為「無值」，那麼你可以採取以下策略來處理：
+
+1. **統一將 `Nothing` 和空陣列視為相同**：在比對前，將 `Nothing` 和長度為 0 的陣列都視為長度為 0 的陣列，這樣你可以簡化比對邏輯。
+   
+2. **在宣告時統一初始化為長度為 0 的陣列**：如果欄位是 `DBNull` 或 `Nothing`，你可以在處理邏輯中將其轉換為長度為 0 的陣列，這樣在後續的比對中，不需要特別區分 `Nothing` 和空陣列。
+
+### 改進方案：
+將 `DBNull` 和 `Nothing` 統一初始化為長度為 0 的陣列，這樣你可以統一進行比對，並避免在每次比對時特別處理 `Nothing` 和空陣列。
+
+### 宣告並統一處理為長度為 0 的陣列：
+
+```vb
+For Each row1 As DataRow In dataTable1.Rows
+    ' 檢查 BondedIT 是否為 1
+    If row1.Field(Of Integer)("BondedIT") = 1 Then
+        ' 檢查 BondedNo 是否為 DBNull，如果是，則初始化為長度為 0 的陣列
+        Dim bondedNoArray As String() = If(Not IsDBNull(row1("BondedNo")), row1.Field(Of String)("BondedNo").Split(";"c), New String() {})
+
+        ' 在第二個表中進行比對
+        For Each row2 As DataRow In dataTable2.Rows
+            ' 檢查 BondedNo1 是否為 DBNull，如果是，則初始化為長度為 0 的陣列
+            Dim bondedNo1Array As String() = If(Not IsDBNull(row2("BondedNo1")), row2.Field(Of String)("BondedNo1").Split(";"c), New String() {})
+
+            ' 現在，bondedNoArray 和 bondedNo1Array 都是有效的陣列，無論它們是來自空值還是實際值
+            ' 先檢查兩個陣列的長度是否一致
+            If bondedNoArray.Length = bondedNo1Array.Length Then
+                ' 比對每個元素是否一致
+                Dim isMatch As Boolean = True
+                For i As Integer = 0 To bondedNoArray.Length - 1
+                    If bondedNoArray(i) <> bondedNo1Array(i) Then
+                        ' 如果不一致，記錄出錯的索引與值
+                        Console.WriteLine($"錯誤: 第 {i + 1} 個值不匹配 - BondedNo: {bondedNoArray(i)} 與 BondedNo1: {bondedNo1Array(i)}")
+                        isMatch = False
+                    End If
+                Next
+
+                ' 如果所有值都匹配，則輸出匹配訊息
+                If isMatch Then
+                    Console.WriteLine($"完全匹配: {String.Join(";", bondedNoArray)}")
+                End If
+            Else
+                ' 長度不一致時，直接輸出不匹配訊息
+                Console.WriteLine("錯誤: BondedNo 和 BondedNo1 的長度不一致")
+            End If
+        Next
+    End If
+Next
+```
+
+### 關鍵點：
+
+1. **統一處理為長度為 0 的陣列**：
+   - 使用 `If` 函數來簡化檢查邏輯，`If(Not IsDBNull(欄位), ...)`。如果欄位不是 `DBNull`，則進行字串分割操作，否則將其初始化為長度為 0 的陣列 `New String() {}`。
+   
+2. **長度為 0 的陣列與 `Nothing` 一致處理**：
+   - 這樣的設計確保了即使資料欄位為 `DBNull`，陣列變數也不會是 `Nothing`，而是長度為 0 的陣列，這樣便於統一進行後續比對。
+
+### 測試情境：
+
+- **當 `BondedNo` 或 `BondedNo1` 是 `null` 或 `DBNull`**：此時它們會被初始化為長度為 0 的陣列，兩者長度相同，並且後續會進行長度為 0 的陣列比對。
+- **當 `BondedNo` 和 `BondedNo1` 都為 `DBNull` 或空字串**：它們會被認為是相同的（即兩者都是空的陣列）。
+- **正常比對的情況**：如果兩者有值並且長度相同，則會逐一進行比對。
+
+這樣的方案能夠簡化你的比對邏輯，確保 `DBNull`、`Nothing` 和空陣列都被統一處理為長度為 0 的陣列，避免在後續邏輯中重複檢查 `Nothing` 的情況。
+
 當兩個欄位可能為 `null`（即 `DBNull`）時，你需要在比對之前進行檢查。對於 `DBNull` 的處理，你可以使用 `IsDBNull()` 方法來確認欄位的值是否為 `null`，並根據檢查結果進行處理。
 
 你可以按照以下步驟處理可能為 `null` 的情況：
