@@ -1,3 +1,96 @@
+當兩個欄位可能為 `null`（即 `DBNull`）時，你需要在比對之前進行檢查。對於 `DBNull` 的處理，你可以使用 `IsDBNull()` 方法來確認欄位的值是否為 `null`，並根據檢查結果進行處理。
+
+你可以按照以下步驟處理可能為 `null` 的情況：
+
+1. 在進行比對之前，先檢查兩個欄位是否為 `null`。
+2. 如果兩個欄位都是 `null`，則認為它們相等。
+3. 如果只有一個欄位是 `null`，則判定它們不匹配。
+
+### 修改後的程式碼：
+
+```vb
+For Each row1 As DataRow In dataTable1.Rows
+    ' 檢查 BondedIT 是否為 1
+    If row1.Field(Of Integer)("BondedIT") = 1 Then
+        ' 檢查 BondedNo 是否為 DBNull
+        Dim bondedNoArray As String() = Nothing
+        If Not IsDBNull(row1("BondedNo")) Then
+            bondedNoArray = row1.Field(Of String)("BondedNo").Split(";"c)
+        End If
+
+        ' 在第二個表中進行比對
+        For Each row2 As DataRow In dataTable2.Rows
+            ' 檢查 BondedNo1 是否為 DBNull
+            Dim bondedNo1Array As String() = Nothing
+            If Not IsDBNull(row2("BondedNo1")) Then
+                bondedNo1Array = row2.Field(Of String)("BondedNo1").Split(";"c)
+            End If
+
+            ' 如果兩者都為 null，認為匹配
+            If bondedNoArray Is Nothing AndAlso bondedNo1Array Is Nothing Then
+                Console.WriteLine("兩者都為 null，認為匹配")
+            ' 如果其中一個為 null，則不匹配
+            ElseIf bondedNoArray Is Nothing OrElse bondedNo1Array Is Nothing Then
+                Console.WriteLine("錯誤: 其中一個為 null，另一個不為 null")
+            ' 如果兩者都不為 null，繼續進行比對
+            Else
+                ' 先檢查兩個陣列的長度是否一致
+                If bondedNoArray.Length = bondedNo1Array.Length Then
+                    ' 比對每個元素是否一致
+                    Dim isMatch As Boolean = True
+                    For i As Integer = 0 To bondedNoArray.Length - 1
+                        If bondedNoArray(i) <> bondedNo1Array(i) Then
+                            ' 如果不一致，記錄出錯的索引與值
+                            Console.WriteLine($"錯誤: 第 {i + 1} 個值不匹配 - BondedNo: {bondedNoArray(i)} 與 BondedNo1: {bondedNo1Array(i)}")
+                            isMatch = False
+                        End If
+                    Next
+
+                    ' 如果所有值都匹配，則輸出匹配訊息
+                    If isMatch Then
+                        Console.WriteLine($"完全匹配: {String.Join(";", bondedNoArray)}")
+                    End If
+                Else
+                    ' 長度不一致時，直接輸出不匹配訊息
+                    Console.WriteLine("錯誤: BondedNo 和 BondedNo1 的長度不一致")
+                End If
+            End If
+        Next
+    End If
+Next
+```
+
+### 關鍵處理說明：
+
+1. **檢查 `DBNull`**：
+   - 使用 `If Not IsDBNull(row1("BondedNo")) Then` 檢查 `BondedNo` 是否為 `null`，如果不是 `null`，則將其分割成陣列，否則保持為 `Nothing`。
+   - 同樣對 `BondedNo1` 進行 `DBNull` 檢查。
+
+2. **雙方都為 `null`**：
+   - 如果 `bondedNoArray` 和 `bondedNo1Array` 都是 `Nothing`，則認為它們匹配，輸出 "兩者都為 null，認為匹配"。
+
+3. **一方為 `null`，另一方不是 `null`**：
+   - 如果只有一個為 `null`，則判定它們不匹配，並輸出 "錯誤: 其中一個為 null，另一個不為 null"。
+
+4. **兩者都不為 `null`**：
+   - 如果兩者都不為 `null`，則繼續進行比對，檢查長度是否相同，並逐個元素進行比對。
+
+### 測試情境：
+
+1. **兩個欄位都為 `null`**：
+   - 輸出：`兩者都為 null，認為匹配`
+   
+2. **其中一個為 `null`，另一個有值**：
+   - 輸出：`錯誤: 其中一個為 null，另一個不為 null`
+
+3. **兩個欄位都有值且完全匹配**：
+   - 輸出：`完全匹配: A;B;C`
+
+4. **兩個欄位都有值但不匹配**：
+   - 輸出：`錯誤: 第 2 個值不匹配 - BondedNo: B 與 BondedNo1: D`
+
+這樣的邏輯能夠在處理 `null` 值的情況下進行比對，並確保當值不匹配時，清楚告訴你是哪一個位置發生了錯誤。
+
 為了實現當比對中發現不匹配時，能夠告訴你是哪一個值出錯，你可以修改程式碼來逐一比對陣列中的每個元素，並在發現不匹配時記錄是哪一個位置的值不同。
 
 以下是修改後的程式碼，當比對過程中發現某個位置的值不匹配時，會輸出錯誤的索引和對應的值：
